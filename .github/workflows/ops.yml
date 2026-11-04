@@ -64,14 +64,17 @@ jobs:
             log="ops/done/${name}.log"
             echo "== $f: $cmd ($mins min)"
             case "$cmd" in
-              bootstrap) (python -m unpriced.cli bootstrap && python -m unpriced.cli sweep --minutes "$mins" && python -m unpriced.cli site) > "$log" 2>&1 ;;
-              weekly)    python -m unpriced.cli weekly --minutes "$mins" > "$log" 2>&1 ;;
-              sweep)     (python -m unpriced.cli sweep --minutes "$mins" && python -m unpriced.cli site) > "$log" 2>&1 ;;
-              daily)     python -m unpriced.cli daily > "$log" 2>&1 ;;
-              site)      python -m unpriced.cli site > "$log" 2>&1 ;;
-              *)         echo "unknown command $cmd" > "$log"; false ;;
+              bootstrap) run="python -m unpriced.cli bootstrap && python -m unpriced.cli sweep --minutes $mins && python -m unpriced.cli site" ;;
+              weekly)    run="python -m unpriced.cli weekly --minutes $mins" ;;
+              sweep)     run="python -m unpriced.cli sweep --minutes $mins && python -m unpriced.cli site" ;;
+              daily)     run="python -m unpriced.cli daily" ;;
+              site)      run="python -m unpriced.cli site" ;;
+              *)         run="echo unknown command $cmd; false" ;;
             esac
-            code=$?
+            set -o pipefail
+            bash -c "$run" 2>&1 | tee "$log"
+            code=${PIPESTATUS[0]}
+            set +o pipefail
             [ $code -ne 0 ] && [ $code -ne 75 ] && status=$code
             tail -n 120 "$log" > "$log.tail" && mv "$log.tail" "$log"
             echo "exit: $code" >> "$log"
@@ -82,7 +85,7 @@ jobs:
       - name: Save the record
         run: bash ops/commit.sh "ops request $(date -u +%Y-%m-%dT%H:%MZ)"
       - name: Save the data store
-        if: steps.run.outputs.code == '0'
+        if: always()
         run: bash ops/store.sh push
       - name: Configure Pages
         id: pages

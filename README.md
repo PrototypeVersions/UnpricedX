@@ -24,11 +24,11 @@ Ranks remove market direction, so a rally does not count as skill.
 ## How it learns
 | When (ET) | What | How |
 |---|---|---|
-| Daily ~06:10 | Prices, filings, AI reads, forecasts frozen, portfolio orders, scoring | `daily.yml` |
+| Daily 06:10 (retries 07:10, 08:20) | Prices, filings, AI reads, forecasts frozen, portfolio orders, scoring | `daily.yml` |
 | Saturday 09:40 | Full data refresh, research sweep, holdout tests, champion/challenger update, live refits | `weekly.yml` |
 | Tue–Sat 08:50 | Claude health check: confirms the cycle ran, opens a fix PR if something broke | scheduled Claude session |
-| Sunday 10:30 | Claude research session: reads the ledger and live record, proposes new features/experiments as a PR | scheduled Claude session |
-| Monthly | Claude methodology review (`docs/reviews/`) | scheduled Claude session |
+| Sunday 10:05 | Claude research session: reads the ledger and live record, proposes new features/experiments as a PR | scheduled Claude session |
+| 1st of each month 11:36 | Claude methodology review (`docs/reviews/`) | scheduled Claude session |
 
 Learning happens at four levels, each with its own guardrail:
 1. **Parameters** refit weekly on newer data (fixed specs; artifacts hashed into every forecast).

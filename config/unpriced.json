@@ -62,11 +62,11 @@
   },
 
   "schedule": {
-    "daily": "Tue-Sat 06:10 ET, retries 07:10 and 08:20: process the previous session and freeze forecasts before the open",
+    "daily": "Every morning 06:10 ET, retries 07:10 and 08:20: process the previous session and freeze forecasts before the open",
     "weekly": "Saturday 09:40 ET: refresh all data, run the research sweep, holdout tests and live refits",
     "aiHealthCheck": "Tue-Sat 08:50 ET: a Claude session checks the cycle ran and opens a fix PR if something broke",
-    "aiResearch": "Sunday 10:30 ET: a Claude session reviews the lab and live record and proposes new experiments as a PR",
-    "aiReview": "First Sunday of each month: a Claude session writes a methodology and evidence review"
+    "aiResearch": "Sunday 10:05 ET: a Claude session reviews the lab and live record and proposes new experiments as a PR",
+    "aiReview": "1st of each month 11:36 ET: a Claude session writes a methodology and evidence review"
   },
 
   "live": {

@@ -29,10 +29,10 @@ Spec format (`lab/queue/my-idea.json`):
 ## Scheduled Claude sessions
 - **Health check** (Tue–Sat 08:50 ET): did the daily cycle run? Is `live/status.json` free of
   `lastError`? Is the chain intact? If broken, diagnose and open a fix PR. Quiet when healthy.
-- **Research** (Sunday 10:30 ET): read `lab/ledger.jsonl`, `site/data/lab.json`, `site/data/live.json`;
+- **Research** (Sunday 10:05 ET): read `lab/ledger.jsonl`, `site/data/lab.json`, `site/data/live.json`;
   propose at most two new ideas grounded in published evidence, implement them as features/specs
   with tests, open a PR. Never touches gates, eras or records.
-- **Monthly review** (first Sunday): write `docs/reviews/YYYY-MM.md`: what the live evidence says,
+- **Monthly review** (1st of each month, 11:36 ET): write `docs/reviews/YYYY-MM.md`: what the live evidence says,
   what the lab has tried, whether any rule should change (as a proposal, not a change).
 
 ## What will not happen
