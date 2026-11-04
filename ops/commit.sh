@@ -4,7 +4,9 @@ set -euo pipefail
 MSG="${1:-update}"
 git config user.name "unpriced-bot"
 git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-git add -A lab live site/data ops/done 2>/dev/null || true
+for path in lab live site/data ops/done ops/requests; do
+  if [ -e "$path" ]; then git add -A "$path"; fi
+done
 if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
 git commit -q -m "$MSG"
 for i in 1 2 3 4 5; do

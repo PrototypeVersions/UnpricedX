@@ -61,6 +61,8 @@ def load_context(start: str | None = None, end: str | None = None, prices: pd.Da
     if bench not in mats["adj_close"]:
         raise RuntimeError(f"benchmark {bench} missing from price store")
     member = membership(mats, exclude=dcfg["contextSymbols"])
+    ever = member["research"].columns[member["research"].fillna(False).any(axis=0)]
+    member = {k: v[ever] for k, v in member.items()}          # only names that are ever in the universe
     market_ret = mats["adj_close"][bench].pct_change(fill_method=None)
     tick = member["research"].columns
     rets = mats["adj_close"][tick].pct_change(fill_method=None)
