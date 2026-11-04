@@ -235,9 +235,56 @@ def status_json(reg: dict) -> dict:
     }
 
 
+def export_json() -> dict | None:
+    """UnpricedHub export (contract unpriced-export/1) built only from the latest frozen snapshot."""
+    links = snapshot.chain()
+    if not links:
+        return None
+    link = links[-1]
+    snap = snapshot.load(pd.Timestamp(link["session"]))
+    from .calendar import sessions as cal
+    entry = pd.Timestamp(snap["entrySession"])
+    future = cal(entry, entry + pd.Timedelta(days=20))
+    h = int(section("live")["primaryHorizon"])
+    exit_session = future[h] if len(future) > h else None
+    models = [{"id": mid, "role": "champion" if mid == snap.get("champion") else "challenger",
+               "artifactSha256": m.get("fitSha256"), "trainedThrough": m.get("trainedThrough")}
+              for mid, m in snap["models"].items() if int(m.get("horizon", h)) == h]
+    if exit_session is None or not models:
+        return None
+    from .lab.runner import code_version
+    task = "stock-rank-5d-open-open"
+    return {
+        "schema": "unpriced-export/1",
+        "lab": {"id": "stock-lab", "name": "Unpriced Stock Lab", "repo": config()["repo"],
+                "experiment": f"unpricedx-{snap.get('championStatus') or 'live'}", "codeCommit": snap.get("code") or code_version()},
+        "forecastId": f"stock-lab/{snap['session']}/{task}",
+        "decisionSession": snap["session"],
+        "informationCutoff": pd.Timestamp(snap["session"]).tz_localize("America/New_York").replace(hour=17, minute=30).isoformat(),
+        "issuedAt": snap["decidedAt"],
+        "entry": {"session": snap["entrySession"], "price": "open"},
+        "exit": {"session": exit_session.date().isoformat(), "price": "open"},
+        "task": {"id": task, "forecastType": "rank-score", "event": None,
+                 "description": "Rank of each stock's total return from the entry session's open to the open five sessions later; higher score means expected to do better than the others.",
+                 "target": {"quantity": "total-return", "entryPrice": "open", "exitPrice": "open", "horizonSessions": h, "relativeTo": "none"}},
+        "universe": {"definition": "Up to 1,000 most-traded US common stocks priced at $5 or more, chosen each day from that day's data.",
+                     "size": len(snap["universe"])},
+        "models": models,
+        "forecasts": {"assets": snap["universe"], "values": {m["id"]: snap["models"][m["id"]]["score"] for m in models}},
+        "abstained": [],
+        "provenance": {"snapshotPath": link["file"], "snapshotSha256": link["sha256"], "chainPrevHash": link.get("prevHash"),
+                       "inputFingerprint": snap.get("dataFingerprint")},
+        "limitations": ["Historical research uses free data that omits delisted companies (survivorship bias); live forecasts are unaffected.",
+                        "Information cutoff is set to 17:30 ET of the decision session: SEC filings accepted before then may be used."],
+    }
+
+
 def build() -> None:
     reg = ledger.registry()
     out = paths().site_data
+    exp = export_json()
+    if exp:
+        write_json(out / "export" / "latest.json", exp, indent=None)
     write_json(out / "status.json", status_json(reg), indent=None)
     write_json(out / "lab.json", lab_json(), indent=None)
     write_json(out / "forecasts.json", forecasts_json(reg), indent=None)
