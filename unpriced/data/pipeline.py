@@ -60,6 +60,13 @@ def recent_universe(sessions_back: int = 40) -> list[str]:
     return sorted(member.columns[member.any(axis=0)])
 
 
+def ever_universe() -> list[str]:
+    """Tickers that were in the research universe on any date in the stored history."""
+    from ..features.context import load_context  # local import: heavy
+    ctx = load_context()
+    return sorted(ctx.member["research"].columns)
+
+
 def update_prices_job(mode: str, provider=None) -> dict:
     ctx_syms = section("data")["contextSymbols"]
     if mode == "daily" and store.exists("prices"):
@@ -80,7 +87,9 @@ def update_sec_job(mode: str, session: pd.Timestamp | None = None, tickers: list
     sec = SecClient()
     tick = sec.tickers()
     store.write("sec_tickers", tick)
-    universe = set(tickers or recent_universe(sessions_back=252))
+    if tickers is None:
+        tickers = recent_universe(sessions_back=252) if mode == "daily" else ever_universe()
+    universe = set(tickers)
     m = tick[tick["ticker"].isin(universe)].drop_duplicates("cik")
     ciks = list(m["cik"].astype(int))
     filings = store.read_or_empty("sec_filings")
