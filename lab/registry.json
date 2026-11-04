@@ -237,7 +237,7 @@
       },
       "horizon": 5,
       "fit": {
-        "trainedAt": "2026-11-03T21:02:58-05:00",
+        "trainedAt": "2026-11-03T21:17:59-05:00",
         "trainedThrough": "2026-10-21",
         "rows": 1047000,
         "sha256": "a6b1162015c42ccb52d6ac8f11c1f6d1220b6a4092eb4e300435ce775edd82c8",
@@ -434,7 +434,7 @@
       },
       "horizon": 5,
       "fit": {
-        "trainedAt": "2026-11-03T21:03:02-05:00",
+        "trainedAt": "2026-11-03T21:18:03-05:00",
         "trainedThrough": "2026-10-21",
         "rows": 889000,
         "sha256": "3a6aa863a34f2ee94e6f89abb6184ee05196561de0155b91328c26fd6bc5252d",
@@ -606,7 +606,7 @@
       },
       "horizon": 5,
       "fit": {
-        "trainedAt": "2026-11-03T21:03:06-05:00",
+        "trainedAt": "2026-11-03T21:18:07-05:00",
         "trainedThrough": "2026-10-21",
         "rows": 889000,
         "sha256": "4eef5bac8433a070d511619d28264dbd223ca5f189909d4df35a43cb6c074d1a",
@@ -781,7 +781,7 @@
       },
       "horizon": 5,
       "fit": {
-        "trainedAt": "2026-11-03T21:03:11-05:00",
+        "trainedAt": "2026-11-03T21:18:11-05:00",
         "trainedThrough": "2026-10-21",
         "rows": 889000,
         "sha256": "3fdbdb436ba5c99a6d5507367640bbb8b698695049dedc2472082a8ec1068d4a",
@@ -962,7 +962,7 @@
       },
       "horizon": 21,
       "fit": {
-        "trainedAt": "2026-11-03T21:03:13-05:00",
+        "trainedAt": "2026-11-03T21:18:13-05:00",
         "trainedThrough": "2026-09-30",
         "rows": 883000,
         "sha256": "12c8e49097a3a5ecb9b4ea1c9126403ebdbdb5d9fafcd3837a117a43406ee017",
@@ -1015,5 +1015,5 @@
       "note": "exploratory: did not pass gates"
     }
   ],
-  "updatedAt": "2026-11-03T21:03:13-05:00"
+  "updatedAt": "2026-11-03T21:18:13-05:00"
 }

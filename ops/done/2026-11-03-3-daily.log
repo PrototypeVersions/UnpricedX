@@ -1,0 +1,44 @@
+2026-11-04 02:50:59,266 INFO unpriced.context: context: 347 sessions x 1154 tickers, 13251 earnings events, 103212 fundamental rows
+2026-11-04 02:51:03,962 ERROR yfinance: 
+1 Failed download:
+2026-11-04 02:51:03,962 ERROR yfinance: ['APLD']: OperationalError('database is locked')
+2026-11-04 02:51:08,258 INFO unpriced.prices: yahoo: 80/1071 tickers requested, 1 failed so far
+2026-11-04 02:52:23,545 INFO unpriced.prices: yahoo: 880/1071 tickers requested, 1 failed so far
+2026-11-04 02:52:44,285 INFO unpriced.prices: adjustment basis changed for 1 tickers; refetching full history
+2026-11-04 02:52:44,543 INFO unpriced.prices: yahoo: 1/1 tickers requested, 0 failed so far
+2026-11-04 02:52:53,375 INFO unpriced.prices: price update: {'requested': 1071, 'new': 0, 'refetched': 1, 'appended': 0, 'rows': 16680011, 'lastDate': '2026-11-03', 'failedCount': 1}
+2026-11-04 02:53:05,279 INFO unpriced.context: context: 347 sessions x 1154 tickers, 13251 earnings events, 103212 fundamental rows
+2026-11-04 02:53:06,093 WARNING unpriced.sec: SEC refusal body: AccessDenied Access Denied J5Z4BPNG89ACESFR RETTXEEF1uiuxREXVC2XBkE/ulMCceIh3ohJuaM/xDweWDHrr9+TLdc2tatDFRNBSsz2B4Vxe8g=
+2026-11-04 02:53:06,093 WARNING unpriced.sec: SEC 403 for https://www.sec.gov/Archives/edgar/daily-index/2026/QTR4/master.20261103.idx; backing off 5s
+2026-11-04 02:53:11,233 WARNING unpriced.sec: SEC 403 for https://www.sec.gov/Archives/edgar/daily-index/2026/QTR4/master.20261103.idx; backing off 10s
+2026-11-04 02:53:21,364 WARNING unpriced.sec: SEC 403 for https://www.sec.gov/Archives/edgar/daily-index/2026/QTR4/master.20261103.idx; backing off 20s
+2026-11-04 02:53:41,569 WARNING unpriced.sec: SEC 403 for https://www.sec.gov/Archives/edgar/daily-index/2026/QTR4/master.20261103.idx; backing off 40s
+2026-11-04 02:54:38,680 WARNING unpriced.sec: SEC 403 for https://www.sec.gov/Archives/edgar/daily-index/2026/QTR4/master.20261103.idx; backing off 80s
+2026-11-04 02:55:58,680 WARNING unpriced.cycle: SEC update failed: SEC request kept failing: https://www.sec.gov/Archives/edgar/daily-index/2026/QTR4/master.20261103.idx
+2026-11-04 02:56:15,479 INFO unpriced.context: context: 758 sessions x 1368 tickers, 26687 earnings events, 103212 fundamental rows
+{
+  "session": "2026-11-03",
+  "startedAt": "2026-11-03T21:50:47-05:00",
+  "sec": {
+    "error": "SEC request kept failing: https://www.sec.gov/Archives/edgar/daily-index/2026/QTR4/master.20261103.idx"
+  },
+  "coverage": 1.0,
+  "llm": {
+    "enabled": false
+  },
+  "trades": 0,
+  "newScores": 0,
+  "promotion": {
+    "events": []
+  },
+  "snapshot": {
+    "session": "2026-11-03",
+    "file": "live/snapshots/2026/2026-11-03.json.gz",
+    "sha256": "49e1f41bcec71c191c8daf8a3ad10cd34a78b31ce49f9be44191b24c2150a4ed",
+    "prevHash": null,
+    "decidedAt": "2026-11-03T21:56:18-05:00",
+    "entrySession": "2026-11-04"
+  },
+  "status": "published"
+}
+exit: 0
