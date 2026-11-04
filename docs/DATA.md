@@ -15,6 +15,14 @@
 - Filings count from their reaction session: same session if accepted before 16:00 ET, else next.
 - Fundamentals: first-reported value per period; effective the session after the filing date.
 
+## Daily SEC updates
+Each daily cycle reads EDGAR's daily index (the list of filings accepted that day) for every day
+since the last one it read, then refreshes those companies' filings and, for 10-Q/10-K filers, their
+XBRL facts; a full refresh runs weekly. The index for a day is published overnight, so an evening
+run finds tonight's file missing (EDGAR answers 403 `AccessDenied` for a file that does not exist
+yet) and leaves that day pending for the next run. A file still missing once a later day is being
+processed means EDGAR was closed that day (weekends, federal holidays) and is recorded as absent.
+
 ## Known bias
 Free price history only covers companies still listed, so firms that failed or were acquired are
 missing from the past. This flatters strategies that buy losers or small, risky stocks. The live

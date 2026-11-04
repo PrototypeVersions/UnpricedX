@@ -78,6 +78,48 @@ def update_prices_job(mode: str, provider=None) -> dict:
     return prices_mod.update_prices(tickers, provider=provider)
 
 
+INDEX_CATCHUP_DAYS = 14
+
+
+def _daily_indexes(sec, session: pd.Timestamp) -> tuple[pd.DataFrame, dict]:
+    """Every EDGAR daily index not yet read, from the day after the last one read through `session`.
+
+    A run can miss a day's index (the file is published overnight, so an evening run is too early;
+    a run can also fail). The next run catches up instead of skipping those filings. A missing file
+    for an earlier day means EDGAR was closed (weekend or federal holiday) and is not retried; a
+    missing file for `session` itself may simply not be published yet, so it stays pending.
+    """
+    sess = pd.Timestamp(session).normalize()
+    done = store.read_or_empty("sec_index_days")
+    # first run: also re-read the previous business day (re-reading is harmless; skipping is not)
+    last = pd.to_datetime(done["day"]).max() if len(done) else sess - pd.offsets.BDay(2)
+    start = max(last + pd.Timedelta(days=1), sess - pd.Timedelta(days=INDEX_CATCHUP_DAYS))
+    frames, info = [], {"read": [], "absent": [], "pending": []}
+    for d in pd.bdate_range(start, sess):
+        idx = sec.daily_index(d)
+        if idx is not None:
+            frames.append(idx)
+            info["read"].append(d.date().isoformat())
+        elif d < sess:
+            info["absent"].append(d.date().isoformat())
+        else:
+            info["pending"].append(d.date().isoformat())
+    cols = ["cik", "company", "form", "filing_date", "filename"]
+    out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=cols)
+    out["cik"] = out["cik"].astype(int)
+    return out, info
+
+
+def _mark_index_days(info: dict) -> None:
+    new = [(d, "read") for d in info.get("read", [])] + [(d, "absent") for d in info.get("absent", [])]
+    if not new:
+        return
+    done = store.read_or_empty("sec_index_days")
+    add = pd.DataFrame(new, columns=["day", "status"])
+    allr = pd.concat([done, add], ignore_index=True) if len(done) else add
+    store.write("sec_index_days", allr.drop_duplicates("day", keep="last").sort_values("day").reset_index(drop=True))
+
+
 def update_sec_job(mode: str, session: pd.Timestamp | None = None, tickers: list[str] | None = None) -> dict:
     """Filings and fundamentals from EDGAR. Skipped (not failed) when no contact email is set."""
     if not sec_enabled():
@@ -98,7 +140,7 @@ def update_sec_job(mode: str, session: pd.Timestamp | None = None, tickers: list
     report = {"enabled": True, "mode": mode}
 
     if mode == "daily" and session is not None and len(filings):
-        idx = sec.daily_index(pd.Timestamp(session))
+        idx, report["indexDays"] = _daily_indexes(sec, pd.Timestamp(session))
         hit = idx[idx["cik"].isin(set(ciks)) & idx["form"].isin(["8-K", "10-Q", "10-K", "8-K/A", "10-Q/A", "10-K/A"])]
         refresh = sorted(set(hit["cik"]))
         fact_refresh = sorted(set(hit.loc[hit["form"].isin(["10-Q", "10-K", "10-Q/A", "10-K/A"]), "cik"]))
@@ -147,5 +189,7 @@ def update_sec_job(mode: str, session: pd.Timestamp | None = None, tickers: list
             if len(fund):
                 store.write("fundamentals", fund)
                 report["fundamentalRows"] = int(len(fund))
+    if "indexDays" in report:       # only after the filings they point to have been fetched
+        _mark_index_days(report["indexDays"])
     report["at"] = iso(now_et())
     return report

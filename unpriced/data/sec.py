@@ -73,7 +73,15 @@ class SecClient:
                 time.sleep(delay)
             self._last = time.monotonic()
 
-    def get(self, url: str, allow_404: bool = True) -> requests.Response | None:
+    def get(self, url: str, allow_404: bool = True, missing_403: bool = False) -> requests.Response | None:
+        """GET with SEC's fair-access backoff. Returns None for a file that does not exist.
+
+        EDGAR's Archives are served from object storage, which answers a request for a file that
+        does not exist (yet) with 403 and an S3-style `AccessDenied` body rather than 404. Pass
+        `missing_403=True` where that is the expected meaning (e.g. tonight's daily index, which is
+        published overnight), so it is reported as missing at once instead of retried for minutes.
+        Rate-limit and identification refusals are HTML pages, not `AccessDenied`, and still back off.
+        """
         for attempt in range(5):
             self._wait()
             try:
@@ -85,6 +93,8 @@ class SecClient:
             if r.status_code == 200:
                 return r
             if r.status_code == 404 and allow_404:
+                return None
+            if r.status_code == 403 and missing_403 and "AccessDenied" in (r.text or "")[:2000]:
                 return None
             if r.status_code in (403, 429, 500, 502, 503):
                 wait = 5 * (2 ** attempt)
@@ -143,12 +153,16 @@ class SecClient:
         filings = pd.concat([f for f in frames if len(f)], ignore_index=True) if any(len(f) for f in frames) else pd.DataFrame()
         return meta, filings
 
-    def daily_index(self, day: pd.Timestamp) -> pd.DataFrame:
+    def daily_index(self, day: pd.Timestamp) -> pd.DataFrame | None:
+        """EDGAR's list of filings accepted on `day`, or None if that file does not exist (yet).
+
+        The file is generated overnight, and none is published for days EDGAR is closed
+        (weekends and federal holidays, some of which are NYSE trading days)."""
         q = (day.month - 1) // 3 + 1
         url = f"{self.BASE}/Archives/edgar/daily-index/{day.year}/QTR{q}/master.{day:%Y%m%d}.idx"
-        r = self.get(url)
+        r = self.get(url, missing_403=True)
         if r is None:
-            return pd.DataFrame(columns=["cik", "company", "form", "filing_date", "filename"])
+            return None
         rows = []
         for line in r.text.splitlines():
             parts = line.split("|")

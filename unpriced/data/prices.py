@@ -113,6 +113,23 @@ class YahooProvider:
                 time.sleep(pause)
             if (i // batch) % 10 == 0:
                 L.info("yahoo: %d/%d tickers requested, %d failed so far", min(i + batch, len(tickers)), len(tickers), len(failed))
+        # A few failures are usually transient (yfinance's threaded downloads can trip over its own
+        # cache database: "database is locked"). Retry them once, one thread, before giving up.
+        if 0 < len(failed) <= 60:
+            time.sleep(pause)
+            try:
+                raw = yf.download(failed, start=start, end=end, interval="1d", auto_adjust=False, actions=True,
+                                  group_by="ticker", threads=False, progress=False, timeout=30)
+                parts = _split_download(raw, failed) if raw is not None else {}
+            except Exception as exc:
+                L.warning("yahoo retry of %d failed tickers failed (%s)", len(failed), exc)
+                parts = {}
+            still = []
+            for t in failed:
+                df = _tidy(parts[t], t) if t in parts else pd.DataFrame(columns=COLS)
+                (still.append(t) if df.empty else frames.append(df))
+            L.info("yahoo retry: %d of %d recovered", len(failed) - len(still), len(failed))
+            failed = still
         data = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=COLS)
         return data, failed
 
