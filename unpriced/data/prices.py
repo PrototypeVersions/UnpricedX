@@ -131,12 +131,13 @@ def _compact(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["date"] = pd.to_datetime(df["date"]).astype("datetime64[ns]")
     df["ticker"] = df["ticker"].astype(str)
+    # float32 keeps ~7 significant digits: ample for prices, and it halves memory and storage
     for c in ["open", "high", "low", "close", "adj_close"]:
-        df[c] = pd.to_numeric(df[c], errors="coerce").astype("float64")
-    df["volume"] = pd.to_numeric(df["volume"], errors="coerce").astype("float64")
+        df[c] = pd.to_numeric(df[c], errors="coerce").astype("float32")
+    df["volume"] = pd.to_numeric(df["volume"], errors="coerce").astype("float32")
     if "split" not in df:
         df["split"] = 0.0
-    df["split"] = pd.to_numeric(df["split"], errors="coerce").fillna(0.0).astype("float64")
+    df["split"] = pd.to_numeric(df["split"], errors="coerce").fillna(0.0).astype("float32")
     return df.sort_values(["ticker", "date"]).drop_duplicates(["ticker", "date"], keep="last").reset_index(drop=True)
 
 
@@ -211,8 +212,8 @@ def update_prices(tickers: Iterable[str], provider=None, full: bool = False, ove
 
 
 def wide(prices: pd.DataFrame, field: str) -> pd.DataFrame:
-    """Date x ticker matrix for one field."""
-    return prices.pivot(index="date", columns="ticker", values=field).sort_index()
+    """Date x ticker matrix for one field (computed in float64 for numerical safety)."""
+    return prices.pivot(index="date", columns="ticker", values=field).sort_index().astype("float64")
 
 
 def price_matrices(prices: pd.DataFrame) -> dict[str, pd.DataFrame]:
