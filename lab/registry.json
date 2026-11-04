@@ -1,0 +1,991 @@
+{
+  "champion": "ens_all-c3743f03",
+  "championStatus": "provisional",
+  "models": {
+    "ens_all-c3743f03": {
+      "spec": {
+        "name": "ens_all",
+        "kind": "ensemble",
+        "horizon": 5,
+        "members": [
+          {
+            "name": "ridge_all",
+            "kind": "ridge",
+            "families": [
+              "momentum",
+              "reversal",
+              "risk",
+              "liquidity",
+              "events",
+              "fundamentals",
+              "valuation"
+            ],
+            "horizon": 5
+          },
+          {
+            "name": "gbm_all",
+            "kind": "gbm",
+            "families": [
+              "momentum",
+              "reversal",
+              "risk",
+              "liquidity",
+              "events",
+              "fundamentals",
+              "valuation"
+            ],
+            "horizon": 5
+          }
+        ]
+      },
+      "addedAt": "2026-11-03T20:11:06-05:00",
+      "role": "champion",
+      "name": "ens_all",
+      "note": "provisional: pre-registered default; no model has passed all gates yet",
+      "dev": {
+        "ic": {
+          "days": 3522,
+          "mean": 0.01580959265777474,
+          "std": 0.14013808880123638,
+          "tNW": 3.732961176343344,
+          "hitRate": 0.5661555934128336,
+          "icir": 0.11281438753027478,
+          "yearsPositive": 0.7333333333333333,
+          "byYear": {
+            "2007": 0.19902,
+            "2008": -0.00053,
+            "2009": -0.0145,
+            "2010": 0.02987,
+            "2011": 0.03605,
+            "2012": -0.00037,
+            "2013": 0.01394,
+            "2014": 0.02463,
+            "2015": 0.02164,
+            "2016": -0.01322,
+            "2017": 0.02139,
+            "2018": 0.01499,
+            "2019": 0.02892,
+            "2020": 0.03362,
+            "2021": 0.02352
+          },
+          "worstYear": -0.014504675282896258
+        },
+        "longShort": {
+          "periods": 705,
+          "grossAnnual": 0.034574289854536665,
+          "netAnnual": -0.106383316218853,
+          "sharpeGross": 0.15249217217928518,
+          "sharpeNet": -0.46939900517463684,
+          "turnover": 1.2652198581560286,
+          "maxDrawdownNet": -0.8898698091506958,
+          "deflated": {
+            "dsr": 0.007314463316904536,
+            "psr": 0.05022971985657468,
+            "sr0": 0.03215355879863159,
+            "srPerPeriod": -0.06611909717321396,
+            "periods": 705,
+            "nTrials": 3
+          },
+          "longLeg": 0.14994195964145277,
+          "shortLeg": 0.11536767066753609
+        },
+        "longOnly": {
+          "periods": 705,
+          "netAnnual": 0.09216167777776718,
+          "benchAnnual": 0.12020347324047909,
+          "excessAnnual": -0.02804180607199669,
+          "sharpeExcess": -0.16035842895507812,
+          "turnover": 0.7373758865248228
+        }
+      },
+      "devGates": {
+        "checks": {
+          "icTstat": true,
+          "netSharpeSignificant": false,
+          "positiveNet": false
+        },
+        "passed": false,
+        "icBar": 3.0,
+        "trials": 3
+      },
+      "holdout": {
+        "ic": {
+          "days": 1204,
+          "mean": 0.02611900087273398,
+          "std": 0.1488124936346203,
+          "tNW": 3.456505588921138,
+          "hitRate": 0.5697674418604651,
+          "icir": 0.1755161830488778,
+          "yearsPositive": 1.0,
+          "byYear": {
+            "2022": 0.03211,
+            "2023": 0.00725,
+            "2024": 0.04668,
+            "2025": 0.01801,
+            "2026": 0.02641
+          },
+          "worstYear": 0.007247917096246111
+        },
+        "longShort": {
+          "periods": 241,
+          "grossAnnual": 0.1355373888481331,
+          "netAnnual": -0.002214688342064619,
+          "sharpeGross": 0.6489110950142137,
+          "sharpeNet": -0.010602097027003765,
+          "turnover": 1.2436514522821578,
+          "maxDrawdownNet": -0.4533259868621826,
+          "deflated": {
+            "dsr": 0.015183356035011192,
+            "psr": 0.4907750062192941,
+            "sr0": 0.13833476661374944,
+            "srPerPeriod": -0.0014934012433514,
+            "periods": 241,
+            "nTrials": 36
+          },
+          "longLeg": 0.17007501925137936,
+          "shortLeg": 0.034537629870682394
+        },
+        "longOnly": {
+          "periods": 241,
+          "netAnnual": 0.19050410389900208,
+          "benchAnnual": 0.13073093450238882,
+          "excessAnnual": 0.05977313965559006,
+          "sharpeExcess": 0.33158379793167114,
+          "turnover": 0.7197095435684648
+        }
+      },
+      "holdoutGates": {
+        "checks": {
+          "icTstat": true,
+          "positiveNet": false
+        },
+        "passed": false
+      },
+      "calibration": {
+        "x": [
+          0.0,
+          0.05,
+          0.1,
+          0.15000000000000002,
+          0.2,
+          0.25,
+          0.30000000000000004,
+          0.35000000000000003,
+          0.4,
+          0.45,
+          0.5,
+          0.55,
+          0.6000000000000001,
+          0.65,
+          0.7000000000000001,
+          0.75,
+          0.8,
+          0.8500000000000001,
+          0.9,
+          0.9500000000000001,
+          1.0
+        ],
+        "p": [
+          0.4452,
+          0.477,
+          0.48467,
+          0.48748,
+          0.48748,
+          0.49307,
+          0.49307,
+          0.49762,
+          0.49854,
+          0.49854,
+          0.50056,
+          0.50707,
+          0.50707,
+          0.5074,
+          0.5074,
+          0.5124,
+          0.5124,
+          0.5124,
+          0.5124,
+          0.51378,
+          0.55882
+        ],
+        "excessBins": [
+          -0.000944,
+          -0.000663,
+          -0.000535,
+          -0.000452,
+          -0.000232,
+          1.3e-05,
+          0.000255,
+          0.000957,
+          0.000538,
+          0.001063
+        ]
+      },
+      "horizon": 5,
+      "fit": {
+        "trainedAt": "2026-11-03T20:11:09-05:00",
+        "trainedThrough": "2026-10-21",
+        "rows": 1047000,
+        "sha256": "346dfcdb8a3f3611eddc14a11d29f3c151f06e5a0a594571737359145ecc94c2",
+        "features": [
+          "mom_12_1",
+          "mom_6_1",
+          "high_52w",
+          "fip",
+          "ind_mom_6",
+          "ret_1m",
+          "ret_1w",
+          "ind_rel_1m",
+          "overnight_1m",
+          "intraday_1m",
+          "vol_3m",
+          "beta_1y",
+          "ivol_3m",
+          "max_1m",
+          "skew_3m",
+          "log_dvol",
+          "amihud_1m",
+          "volume_trend",
+          "ear",
+          "days_since_earn",
+          "earn_soon",
+          "filing_rate_3m",
+          "gp_assets",
+          "asset_growth",
+          "sales_growth",
+          "accruals",
+          "roe",
+          "issuance",
+          "sue",
+          "earnings_yield",
+          "book_to_market",
+          "sales_to_price",
+          "log_mcap"
+        ]
+      }
+    },
+    "gbm_all-d90c9d52": {
+      "spec": {
+        "name": "gbm_all",
+        "kind": "gbm",
+        "families": [
+          "momentum",
+          "reversal",
+          "risk",
+          "liquidity",
+          "events",
+          "fundamentals",
+          "valuation"
+        ],
+        "horizon": 5
+      },
+      "addedAt": "2026-11-03T20:11:06-05:00",
+      "role": "challenger",
+      "name": "gbm_all",
+      "note": "exploratory: did not pass gates",
+      "dev": {
+        "ic": {
+          "days": 3522,
+          "mean": 0.015828691079659667,
+          "std": 0.11845194663185835,
+          "tNW": 4.469993220278583,
+          "hitRate": 0.5644520159000568,
+          "icir": 0.13362964079310832,
+          "yearsPositive": 0.8666666666666667,
+          "byYear": {
+            "2007": 0.09416,
+            "2008": 0.00233,
+            "2009": -0.01736,
+            "2010": 0.0324,
+            "2011": 0.03698,
+            "2012": 0.00271,
+            "2013": 0.00973,
+            "2014": 0.02493,
+            "2015": 0.01652,
+            "2016": -0.00015,
+            "2017": 0.01954,
+            "2018": 0.01811,
+            "2019": 0.02621,
+            "2020": 0.03061,
+            "2021": 0.01839
+          },
+          "worstYear": -0.017358887099019008
+        },
+        "longShort": {
+          "periods": 705,
+          "grossAnnual": 0.06140225759013854,
+          "netAnnual": -0.08080991357564926,
+          "sharpeGross": 0.30150370327033554,
+          "sharpeNet": -0.3970276713371277,
+          "turnover": 1.290921985815603,
+          "maxDrawdownNet": -0.853325366973877,
+          "deflated": {
+            "dsr": 0.030038016503777097,
+            "psr": 0.08189171916489901,
+            "sr0": 0.019590418383379615,
+            "srPerPeriod": -0.05592493712902069,
+            "periods": 705,
+            "nTrials": 2
+          },
+          "longLeg": 0.16343149275791105,
+          "shortLeg": 0.10202923720040262
+        },
+        "longOnly": {
+          "periods": 705,
+          "netAnnual": 0.11792673915624619,
+          "benchAnnual": 0.12020347324047909,
+          "excessAnnual": -0.0022767281625419855,
+          "sharpeExcess": -0.011825086548924446,
+          "turnover": 0.7205673758865249
+        }
+      },
+      "devGates": {
+        "checks": {
+          "icTstat": true,
+          "netSharpeSignificant": false,
+          "positiveNet": false
+        },
+        "passed": false,
+        "icBar": 3.0,
+        "trials": 2
+      },
+      "holdout": null,
+      "holdoutGates": null,
+      "calibration": {
+        "x": [
+          0.0,
+          0.05,
+          0.1,
+          0.15000000000000002,
+          0.2,
+          0.25,
+          0.30000000000000004,
+          0.35000000000000003,
+          0.4,
+          0.45,
+          0.5,
+          0.55,
+          0.6000000000000001,
+          0.65,
+          0.7000000000000001,
+          0.75,
+          0.8,
+          0.8500000000000001,
+          0.9,
+          0.9500000000000001,
+          1.0
+        ],
+        "p": [
+          0.44389,
+          0.4852,
+          0.4885,
+          0.4885,
+          0.49503,
+          0.49762,
+          0.49762,
+          0.49762,
+          0.49762,
+          0.50051,
+          0.50481,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50705,
+          0.50705,
+          0.50834,
+          0.52399
+        ],
+        "excessBins": [
+          -0.000551,
+          -0.000353,
+          -8.8e-05,
+          -2.2e-05,
+          2.9e-05,
+          2.3e-05,
+          0.000156,
+          0.000175,
+          0.000284,
+          0.000347
+        ]
+      },
+      "horizon": 5,
+      "fit": {
+        "trainedAt": "2026-11-03T20:11:13-05:00",
+        "trainedThrough": "2026-10-21",
+        "rows": 889000,
+        "sha256": "5e5fae32bc77150e16d4273c915d4a0550825f1d3ad63ccbe0d1df1219c373bc",
+        "features": [
+          "mom_12_1",
+          "mom_6_1",
+          "high_52w",
+          "fip",
+          "ind_mom_6",
+          "ret_1m",
+          "ret_1w",
+          "ind_rel_1m",
+          "overnight_1m",
+          "intraday_1m",
+          "vol_3m",
+          "beta_1y",
+          "ivol_3m",
+          "max_1m",
+          "skew_3m",
+          "log_dvol",
+          "amihud_1m",
+          "volume_trend"
+        ]
+      }
+    },
+    "gbm_price-271869db": {
+      "spec": {
+        "name": "gbm_price",
+        "kind": "gbm",
+        "families": [
+          "momentum",
+          "reversal",
+          "risk",
+          "liquidity"
+        ],
+        "horizon": 5
+      },
+      "addedAt": "2026-11-03T20:11:06-05:00",
+      "role": "challenger",
+      "name": "gbm_price",
+      "note": "exploratory: did not pass gates",
+      "dev": {
+        "ic": {
+          "days": 3522,
+          "mean": 0.015828691079659667,
+          "std": 0.11845194663185835,
+          "tNW": 4.469993220278583,
+          "hitRate": 0.5644520159000568,
+          "icir": 0.13362964079310832,
+          "yearsPositive": 0.8666666666666667,
+          "byYear": {
+            "2007": 0.09416,
+            "2008": 0.00233,
+            "2009": -0.01736,
+            "2010": 0.0324,
+            "2011": 0.03698,
+            "2012": 0.00271,
+            "2013": 0.00973,
+            "2014": 0.02493,
+            "2015": 0.01652,
+            "2016": -0.00015,
+            "2017": 0.01954,
+            "2018": 0.01811,
+            "2019": 0.02621,
+            "2020": 0.03061,
+            "2021": 0.01839
+          },
+          "worstYear": -0.017358887099019008
+        },
+        "longShort": {
+          "periods": 705,
+          "grossAnnual": 0.06140225759013854,
+          "netAnnual": -0.08080991357564926,
+          "sharpeGross": 0.30150370327033554,
+          "sharpeNet": -0.3970276713371277,
+          "turnover": 1.290921985815603,
+          "maxDrawdownNet": -0.853325366973877,
+          "deflated": {
+            "dsr": 0.006007969293636139,
+            "psr": 0.08189171916489901,
+            "sr0": 0.044950794058250684,
+            "srPerPeriod": -0.05592493712902069,
+            "periods": 705,
+            "nTrials": 5
+          },
+          "longLeg": 0.16343149275791105,
+          "shortLeg": 0.10202923720040262
+        },
+        "longOnly": {
+          "periods": 705,
+          "netAnnual": 0.11792673915624619,
+          "benchAnnual": 0.12020347324047909,
+          "excessAnnual": -0.0022767281625419855,
+          "sharpeExcess": -0.011825086548924446,
+          "turnover": 0.7205673758865249
+        }
+      },
+      "devGates": {
+        "checks": {
+          "icTstat": true,
+          "netSharpeSignificant": false,
+          "positiveNet": false
+        },
+        "passed": false,
+        "icBar": 3.0,
+        "trials": 5
+      },
+      "holdout": null,
+      "holdoutGates": null,
+      "calibration": {
+        "x": [
+          0.0,
+          0.05,
+          0.1,
+          0.15000000000000002,
+          0.2,
+          0.25,
+          0.30000000000000004,
+          0.35000000000000003,
+          0.4,
+          0.45,
+          0.5,
+          0.55,
+          0.6000000000000001,
+          0.65,
+          0.7000000000000001,
+          0.75,
+          0.8,
+          0.8500000000000001,
+          0.9,
+          0.9500000000000001,
+          1.0
+        ],
+        "p": [
+          0.44389,
+          0.4852,
+          0.4885,
+          0.4885,
+          0.49503,
+          0.49762,
+          0.49762,
+          0.49762,
+          0.49762,
+          0.50051,
+          0.50481,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50705,
+          0.50705,
+          0.50834,
+          0.52399
+        ],
+        "excessBins": [
+          -0.000551,
+          -0.000353,
+          -8.8e-05,
+          -2.2e-05,
+          2.9e-05,
+          2.3e-05,
+          0.000156,
+          0.000175,
+          0.000284,
+          0.000347
+        ]
+      },
+      "horizon": 5,
+      "fit": {
+        "trainedAt": "2026-11-03T20:11:16-05:00",
+        "trainedThrough": "2026-10-21",
+        "rows": 889000,
+        "sha256": "857e47d6923998ce478dcbfcee4b86be8ee6c012b1aef6764d1b87f4a7967c4a",
+        "features": [
+          "mom_12_1",
+          "mom_6_1",
+          "high_52w",
+          "fip",
+          "ind_mom_6",
+          "ret_1m",
+          "ret_1w",
+          "ind_rel_1m",
+          "overnight_1m",
+          "intraday_1m",
+          "vol_3m",
+          "beta_1y",
+          "ivol_3m",
+          "max_1m",
+          "skew_3m",
+          "log_dvol",
+          "amihud_1m",
+          "volume_trend"
+        ]
+      }
+    },
+    "gbm_all_h21-h5-d90c9d52": {
+      "spec": {
+        "name": "gbm_all_h21-h5",
+        "kind": "gbm",
+        "families": [
+          "momentum",
+          "reversal",
+          "risk",
+          "liquidity",
+          "events",
+          "fundamentals",
+          "valuation"
+        ],
+        "horizon": 5
+      },
+      "addedAt": "2026-11-03T20:11:06-05:00",
+      "role": "challenger",
+      "name": "gbm_all_h21-h5",
+      "note": "exploratory: did not pass gates",
+      "dev": {
+        "ic": {
+          "days": 3522,
+          "mean": 0.015828691079659667,
+          "std": 0.11845194663185835,
+          "tNW": 4.469993220278583,
+          "hitRate": 0.5644520159000568,
+          "icir": 0.13362964079310832,
+          "yearsPositive": 0.8666666666666667,
+          "byYear": {
+            "2007": 0.09416,
+            "2008": 0.00233,
+            "2009": -0.01736,
+            "2010": 0.0324,
+            "2011": 0.03698,
+            "2012": 0.00271,
+            "2013": 0.00973,
+            "2014": 0.02493,
+            "2015": 0.01652,
+            "2016": -0.00015,
+            "2017": 0.01954,
+            "2018": 0.01811,
+            "2019": 0.02621,
+            "2020": 0.03061,
+            "2021": 0.01839
+          },
+          "worstYear": -0.017358887099019008
+        },
+        "longShort": {
+          "periods": 705,
+          "grossAnnual": 0.06140225759013854,
+          "netAnnual": -0.08080991357564926,
+          "sharpeGross": 0.30150370327033554,
+          "sharpeNet": -0.3970276713371277,
+          "turnover": 1.290921985815603,
+          "maxDrawdownNet": -0.853325366973877,
+          "deflated": {
+            "dsr": 0.00032737346565376717,
+            "psr": 0.08189171916489901,
+            "sr0": 0.08094394739253043,
+            "srPerPeriod": -0.05592493712902069,
+            "periods": 705,
+            "nTrials": 36
+          },
+          "longLeg": 0.16343149275791105,
+          "shortLeg": 0.10202923720040262
+        },
+        "longOnly": {
+          "periods": 705,
+          "netAnnual": 0.11792673915624619,
+          "benchAnnual": 0.12020347324047909,
+          "excessAnnual": -0.0022767281625419855,
+          "sharpeExcess": -0.011825086548924446,
+          "turnover": 0.7205673758865249
+        }
+      },
+      "devGates": {
+        "checks": {
+          "icTstat": true,
+          "netSharpeSignificant": false,
+          "positiveNet": false
+        },
+        "passed": false,
+        "icBar": 3.197,
+        "trials": 36
+      },
+      "holdout": null,
+      "holdoutGates": null,
+      "calibration": {
+        "x": [
+          0.0,
+          0.05,
+          0.1,
+          0.15000000000000002,
+          0.2,
+          0.25,
+          0.30000000000000004,
+          0.35000000000000003,
+          0.4,
+          0.45,
+          0.5,
+          0.55,
+          0.6000000000000001,
+          0.65,
+          0.7000000000000001,
+          0.75,
+          0.8,
+          0.8500000000000001,
+          0.9,
+          0.9500000000000001,
+          1.0
+        ],
+        "p": [
+          0.44389,
+          0.4852,
+          0.4885,
+          0.4885,
+          0.49503,
+          0.49762,
+          0.49762,
+          0.49762,
+          0.49762,
+          0.50051,
+          0.50481,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50515,
+          0.50705,
+          0.50705,
+          0.50834,
+          0.52399
+        ],
+        "excessBins": [
+          -0.000551,
+          -0.000353,
+          -8.8e-05,
+          -2.2e-05,
+          2.9e-05,
+          2.3e-05,
+          0.000156,
+          0.000175,
+          0.000284,
+          0.000347
+        ]
+      },
+      "horizon": 5,
+      "fit": {
+        "trainedAt": "2026-11-03T20:11:20-05:00",
+        "trainedThrough": "2026-10-21",
+        "rows": 889000,
+        "sha256": "64950e232f07fb54b18d3cede13809f8b4751157978970ed17358ab23d25a406",
+        "features": [
+          "mom_12_1",
+          "mom_6_1",
+          "high_52w",
+          "fip",
+          "ind_mom_6",
+          "ret_1m",
+          "ret_1w",
+          "ind_rel_1m",
+          "overnight_1m",
+          "intraday_1m",
+          "vol_3m",
+          "beta_1y",
+          "ivol_3m",
+          "max_1m",
+          "skew_3m",
+          "log_dvol",
+          "amihud_1m",
+          "volume_trend"
+        ]
+      }
+    },
+    "gbm_all_h21-no_momentum-cb6b5463": {
+      "spec": {
+        "name": "gbm_all_h21-no_momentum",
+        "kind": "gbm",
+        "families": [
+          "reversal",
+          "risk",
+          "liquidity",
+          "events",
+          "fundamentals",
+          "valuation"
+        ],
+        "horizon": 21
+      },
+      "addedAt": "2026-11-03T20:11:06-05:00",
+      "role": "challenger",
+      "name": "gbm_all_h21-no_momentum",
+      "note": "exploratory: did not pass gates",
+      "dev": {
+        "ic": {
+          "days": 3506,
+          "mean": 0.018329324687658594,
+          "std": 0.09686910945076999,
+          "tNW": 3.0829209622780267,
+          "hitRate": 0.5770108385624644,
+          "icir": 0.18921743775267977,
+          "yearsPositive": 0.6666666666666666,
+          "byYear": {
+            "2007": -0.01701,
+            "2008": -0.00241,
+            "2009": -0.02902,
+            "2010": 0.04502,
+            "2011": 0.0176,
+            "2012": 0.01811,
+            "2013": 0.00714,
+            "2014": 0.00674,
+            "2015": -0.00186,
+            "2016": 0.03205,
+            "2017": 0.02376,
+            "2018": 0.02478,
+            "2019": 0.03152,
+            "2020": -0.01005,
+            "2021": 0.10096
+          },
+          "worstYear": -0.029017836571987164
+        },
+        "longShort": {
+          "periods": 167,
+          "grossAnnual": 0.015241694569721551,
+          "netAnnual": -0.020569367334246635,
+          "sharpeGross": 0.08965997565075652,
+          "sharpeNet": -0.12097660452127457,
+          "turnover": 1.3069461077844313,
+          "maxDrawdownNet": -0.6507011651992798,
+          "deflated": {
+            "dsr": 0.007875052739661907,
+            "psr": 0.3231051014509424,
+            "sr0": 0.14878235960097128,
+            "srPerPeriod": -0.03492293879389763,
+            "periods": 167,
+            "nTrials": 21
+          },
+          "longLeg": 0.15002729586593272,
+          "shortLeg": 0.1347856005475282
+        },
+        "longOnly": {
+          "periods": 167,
+          "netAnnual": 0.19989176094532013,
+          "benchAnnual": 0.11654285348925326,
+          "excessAnnual": 0.08334890753030777,
+          "sharpeExcess": 0.5128062963485718,
+          "turnover": 0.705688622754491
+        }
+      },
+      "devGates": {
+        "checks": {
+          "icTstat": true,
+          "netSharpeSignificant": false,
+          "positiveNet": false
+        },
+        "passed": false,
+        "icBar": 3.038,
+        "trials": 21
+      },
+      "holdout": null,
+      "holdoutGates": null,
+      "calibration": {
+        "x": [
+          0.0,
+          0.05,
+          0.1,
+          0.15000000000000002,
+          0.2,
+          0.25,
+          0.30000000000000004,
+          0.35000000000000003,
+          0.4,
+          0.45,
+          0.5,
+          0.55,
+          0.6000000000000001,
+          0.65,
+          0.7000000000000001,
+          0.75,
+          0.8,
+          0.8500000000000001,
+          0.9,
+          0.9500000000000001,
+          1.0
+        ],
+        "p": [
+          0.45082,
+          0.48292,
+          0.48446,
+          0.49843,
+          0.49843,
+          0.49897,
+          0.49897,
+          0.49897,
+          0.49897,
+          0.49897,
+          0.49897,
+          0.49897,
+          0.49897,
+          0.50013,
+          0.50638,
+          0.50638,
+          0.50767,
+          0.50767,
+          0.50767,
+          0.50767,
+          0.52724
+        ],
+        "excessBins": [
+          0.000487,
+          -0.000159,
+          -0.000165,
+          -0.00048,
+          -0.000742,
+          -0.000706,
+          -0.000372,
+          0.000325,
+          0.000828,
+          0.000982
+        ]
+      },
+      "horizon": 21,
+      "fit": {
+        "trainedAt": "2026-11-03T20:11:23-05:00",
+        "trainedThrough": "2026-09-30",
+        "rows": 883000,
+        "sha256": "5e8f212a35293703754204e915cc6bd8862d36d2d09c9fa65d278f4ab8fd45e7",
+        "features": [
+          "ret_1m",
+          "ret_1w",
+          "ind_rel_1m",
+          "overnight_1m",
+          "intraday_1m",
+          "vol_3m",
+          "beta_1y",
+          "ivol_3m",
+          "max_1m",
+          "skew_3m",
+          "log_dvol",
+          "amihud_1m",
+          "volume_trend"
+        ]
+      }
+    }
+  },
+  "history": [
+    {
+      "at": "2026-11-03T20:11:06-05:00",
+      "event": "provisional champion set",
+      "to": "ens_all-c3743f03"
+    },
+    {
+      "at": "2026-11-03T20:11:06-05:00",
+      "event": "challenger added",
+      "to": "gbm_all-d90c9d52",
+      "note": "exploratory: did not pass gates"
+    },
+    {
+      "at": "2026-11-03T20:11:06-05:00",
+      "event": "challenger added",
+      "to": "gbm_price-271869db",
+      "note": "exploratory: did not pass gates"
+    },
+    {
+      "at": "2026-11-03T20:11:06-05:00",
+      "event": "challenger added",
+      "to": "gbm_all_h21-h5-d90c9d52",
+      "note": "exploratory: did not pass gates"
+    },
+    {
+      "at": "2026-11-03T20:11:06-05:00",
+      "event": "challenger added",
+      "to": "gbm_all_h21-no_momentum-cb6b5463",
+      "note": "exploratory: did not pass gates"
+    }
+  ],
+  "updatedAt": "2026-11-03T20:11:23-05:00"
+}

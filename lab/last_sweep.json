@@ -1,0 +1,86 @@
+{
+  "startedAt": "2026-11-03T19:55:41-05:00",
+  "dataSig": "liquidity,momentum,reversal,risk",
+  "evaluated": [
+    "ridge_all-82743a40",
+    "gbm_all-d90c9d52",
+    "ens_all-c3743f03",
+    "ridge_price-5ac08d5a",
+    "gbm_price-271869db",
+    "factor_mom_12_1-3cc777dc",
+    "factor_mom_6_1-7a2074cc",
+    "factor_high_52w-75d767bb",
+    "factor_ind_mom_6-8d9f7083",
+    "factor_ret_1m-f623f1c0",
+    "factor_ret_1w-5b09bb5d",
+    "factor_ind_rel_1m-4f70d639",
+    "factor_overnight_1m-a43240d4",
+    "factor_intraday_1m-8d68aebb",
+    "factor_vol_3m-c1256e00",
+    "factor_ivol_3m-42e2e2f8",
+    "factor_beta_1y-c3f8df6f",
+    "factor_max_1m-fa92354a",
+    "gbm_all_h21-60eeb02c",
+    "ridge_all_h21-22dae728",
+    "gbm_all_h21-no_momentum-cb6b5463",
+    "gbm_all_h21-no_reversal-48c33930",
+    "gbm_all_h21-no_risk-c9867f4b",
+    "gbm_all_h21-no_liquidity-af58251a",
+    "gbm_all_h21-no_events-3bc9f530",
+    "gbm_all_h21-no_fundamentals-b73b2294",
+    "gbm_all_h21-no_valuation-8774cbb1",
+    "gbm_all_h21-learning_rate=0.02-7bc4f793",
+    "gbm_all_h21-learning_rate=0.08-c7265497",
+    "gbm_all_h21-max_leaf_nodes=15-21b9ddce",
+    "gbm_all_h21-max_leaf_nodes=63-a479995a",
+    "gbm_all_h21-l2_regularization=0.1-8c7d1b0b",
+    "gbm_all_h21-l2_regularization=10.0-a80c8cb6",
+    "gbm_all_h21-max_features=0.4-6921aa81",
+    "gbm_all_h21-max_features=1.0-357a5688",
+    "gbm_all_h21-h5-d90c9d52"
+  ],
+  "holdout": [
+    "ens_all-c3743f03"
+  ],
+  "skipped": [
+    {
+      "name": "factor_ear",
+      "reason": "required data unavailable"
+    },
+    {
+      "name": "factor_earn_soon",
+      "reason": "required data unavailable"
+    },
+    {
+      "name": "factor_gp_assets",
+      "reason": "required data unavailable"
+    },
+    {
+      "name": "factor_asset_growth",
+      "reason": "required data unavailable"
+    },
+    {
+      "name": "factor_accruals",
+      "reason": "required data unavailable"
+    },
+    {
+      "name": "factor_issuance",
+      "reason": "required data unavailable"
+    },
+    {
+      "name": "factor_sue",
+      "reason": "required data unavailable"
+    },
+    {
+      "name": "factor_earnings_yield",
+      "reason": "required data unavailable"
+    },
+    {
+      "name": "factor_book_to_market",
+      "reason": "required data unavailable"
+    }
+  ],
+  "finishedAt": "2026-11-03T20:11:23-05:00",
+  "minutes": 17.3,
+  "champion": "ens_all-c3743f03"
+}
