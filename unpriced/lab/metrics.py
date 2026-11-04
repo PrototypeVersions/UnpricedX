@@ -18,6 +18,7 @@ import pandas as pd
 from scipy.stats import norm
 
 EULER_GAMMA = 0.5772156649
+METRICS_VERSION = 2   # 2: hysteresis portfolios (matching the live portfolio) are the primary economic test
 
 
 def daily_ic(df: pd.DataFrame, pred: str, target: str, min_names: int = 30) -> pd.Series:
@@ -71,10 +72,25 @@ def _rebalance_dates(dates: np.ndarray, h: int) -> np.ndarray:
     return u[::h]
 
 
-def long_short(df: pd.DataFrame, pred: str, h: int, cost_bps: pd.Series | None = None, frac: float = 0.1) -> pd.DataFrame:
-    """Equal-weight top-minus-bottom fraction, rebalanced every h sessions, net of trading costs.
+def _buffered_side(day: pd.DataFrame, pred: str, prev: dict, k: int, keep_frac: float, top: bool) -> list[str]:
+    """Hysteresis selection: keep previous names still inside the wider `keep_frac` band, then fill
+    to k names from the best-ranked ones. Mirrors how the live portfolio avoids churning."""
+    pct = day.set_index("ticker")[pred].rank(pct=True)
+    if not top:
+        pct = 1 - pct + 1.0 / len(pct)
+    keep = [t for t in prev if t in pct.index and pct[t] >= 1 - keep_frac]
+    keep = sorted(keep, key=lambda t: -pct[t])[:k]
+    fill = [t for t in pct.sort_values(ascending=False).index if t not in set(keep)][: k - len(keep)]
+    return keep + fill
 
-    Returns one row per holding period: gross, cost, net, turnover.
+
+def long_short(df: pd.DataFrame, pred: str, h: int, cost_bps: pd.Series | None = None, frac: float = 0.1,
+               keep_frac: float | None = 0.3) -> pd.DataFrame:
+    """Equal-weight top-minus-bottom `frac`, rebalanced every h sessions, net of trading costs.
+
+    With `keep_frac` (default), a held name stays until it leaves the wider top/bottom band
+    (hysteresis, as the live portfolio does); `keep_frac=None` rebuilds both legs from scratch
+    each time. Returns one row per holding period: gross, cost, net, turnover.
     """
     d = df[["date", "ticker", pred, f"fwd_{h}", "liq_rank"]].dropna(subset=[pred, f"fwd_{h}"])
     reb = _rebalance_dates(d["date"].to_numpy(), h)
@@ -83,10 +99,16 @@ def long_short(df: pd.DataFrame, pred: str, h: int, cost_bps: pd.Series | None =
         if len(day) < 50:
             continue
         k = max(5, int(len(day) * frac))
-        srt = day.sort_values(pred)
-        short, long_ = srt.head(k), srt.tail(k)
-        wl = dict.fromkeys(long_["ticker"], 1.0 / k)
-        ws = dict.fromkeys(short["ticker"], 1.0 / k)
+        if keep_frac:
+            lt = _buffered_side(day, pred, prev_long, k, keep_frac, True)
+            st = _buffered_side(day, pred, prev_short, k, keep_frac, False)
+        else:
+            srt = day.sort_values(pred)
+            st, lt = list(srt.head(k)["ticker"]), list(srt.tail(k)["ticker"])
+        by = day.set_index("ticker")
+        long_, short = by.loc[lt], by.loc[st]
+        wl = dict.fromkeys(lt, 1.0 / k)
+        ws = dict.fromkeys(st, 1.0 / k)
         traded_l = {t: abs(wl.get(t, 0) - prev_long.get(t, 0)) for t in set(wl) | set(prev_long)}
         traded_s = {t: abs(ws.get(t, 0) - prev_short.get(t, 0)) for t in set(ws) | set(prev_short)}
         costs = _cost_lookup(day, cost_bps)
@@ -106,16 +128,26 @@ def _cost_lookup(day: pd.DataFrame, cost_bps) -> dict:
     return dict(zip(day["ticker"], cost_bps.reindex(day["ticker"]).fillna(30.0).to_numpy()))
 
 
-def long_only(df: pd.DataFrame, pred: str, h: int, n: int = 20) -> pd.DataFrame:
-    """Top-n tradable names, equal weight, every h sessions; excess return over the benchmark."""
+def long_only(df: pd.DataFrame, pred: str, h: int, n: int | None = None, exit_rank: int | None = None) -> pd.DataFrame:
+    """The live paper portfolio's rules on history: top-n tradable names, equal weight, kept until
+    they fall below `exit_rank`, rebalanced every h sessions; excess return over the benchmark."""
+    from ..config import section
+    pcfg = section("portfolio")
+    n = int(n or pcfg["holdings"])
+    exit_rank = int(exit_rank or pcfg["exitRank"])
     d = df[df["tradable"].astype(bool)][["date", "ticker", pred, f"fwd_{h}", f"bench_{h}", "liq_rank"]].dropna(subset=[pred, f"fwd_{h}"])
     reb = _rebalance_dates(d["date"].to_numpy(), h)
     rows, prev = [], {}
     for date, day in d[d["date"].isin(reb)].groupby("date"):
         if len(day) < n * 3:
             continue
-        top = day.nlargest(n, pred)
-        w = dict.fromkeys(top["ticker"], 1.0 / n)
+        ranked = day.sort_values(pred, ascending=False).reset_index(drop=True)
+        rank = dict(zip(ranked["ticker"], ranked.index + 1))
+        keep = [t for t in prev if rank.get(t, 10**9) <= exit_rank]
+        fill = [t for t in ranked["ticker"] if t not in set(keep)][: max(0, n - len(keep))]
+        names = (sorted(keep, key=lambda t: rank[t]) + fill)[:n]
+        top = ranked.set_index("ticker").loc[names].reset_index()
+        w = dict.fromkeys(names, 1.0 / n)
         traded = sum(abs(w.get(t, 0) - prev.get(t, 0)) for t in set(w) | set(prev))
         costs = _cost_lookup(day, None)
         cost = sum(abs(w.get(t, 0) - prev.get(t, 0)) * costs.get(t, 30.0) for t in set(w) | set(prev)) / 1e4
@@ -163,9 +195,13 @@ def summarize(oos: pd.DataFrame, h: int, n_trials: int = 1, sr_var_trials: float
     """Full evaluation block for one model over one era."""
     ic = daily_ic(oos, "pred", f"fwd_{h}")
     ls = long_short(oos, "pred", h)
+    ls_full = long_short(oos, "pred", h, keep_frac=None)
     lo = long_only(oos, "pred", h)
     ppy = 252 / h
-    out = {"ic": ic_summary(ic, h)}
+    out = {"ic": ic_summary(ic, h), "metricsVersion": METRICS_VERSION}
+    if len(ls_full):
+        out["longShortFull"] = {"grossAnnual": float(ls_full["gross"].mean() * ppy), "netAnnual": float(ls_full["net"].mean() * ppy),
+                                "sharpeNet": sharpe(ls_full["net"], ppy), "turnover": float(ls_full["turnover"].mean())}
     if len(ls):
         out["longShort"] = {
             "periods": int(len(ls)), "grossAnnual": float(ls["gross"].mean() * ppy), "netAnnual": float(ls["net"].mean() * ppy),

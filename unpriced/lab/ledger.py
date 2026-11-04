@@ -24,10 +24,23 @@ def entries() -> list[dict]:
     return read_jsonl(ledger_path())
 
 
-def has(spec_id: str, era: str, data_sig: str | None = None) -> bool:
-    """True if this spec was already evaluated in this era on the same data availability."""
-    return any(e["id"] == spec_id and e["era"] == era and e.get("status") == "evaluated"
-               and (data_sig is None or e.get("dataSig") == data_sig) for e in entries())
+def _version(e: dict) -> int:
+    return int(e.get("metrics", {}).get("metricsVersion", 1))
+
+
+def has(spec_id: str, era: str, data_sig: str | None = None, eff_sig: str | None = None) -> bool:
+    """True if this model (by spec id, or by effective signature: the same features actually
+    available, kind, horizon and parameters) was already evaluated in this era on the same data
+    with the current accounting. Re-evaluating the same model is not a new trial."""
+    from .metrics import METRICS_VERSION
+    for e in entries():
+        if e["era"] != era or e.get("status") != "evaluated" or _version(e) != METRICS_VERSION:
+            continue
+        if data_sig is not None and e.get("dataSig") != data_sig:
+            continue
+        if e["id"] == spec_id or (eff_sig is not None and e.get("effSig") == eff_sig):
+            return True
+    return False
 
 
 def latest(spec_id: str, era: str) -> dict | None:
@@ -35,14 +48,42 @@ def latest(spec_id: str, era: str) -> dict | None:
     return found[-1] if found else None
 
 
+def current(era: str, data_sig: str | None = None) -> dict[str, dict]:
+    """Latest evaluation per spec id in an era, current accounting only."""
+    from .metrics import METRICS_VERSION
+    out = {}
+    for e in entries():
+        if e["era"] == era and e.get("status") == "evaluated" and _version(e) == METRICS_VERSION \
+                and (data_sig is None or e.get("dataSig") == data_sig):
+            out[e["id"]] = e
+    return out
+
+
+def identity(e: dict) -> str:
+    if e.get("effSig"):
+        return e["effSig"]
+    from ..models import effective_signature
+    try:
+        return effective_signature(e["spec"], e.get("dataSig", ""))
+    except Exception:
+        return e["id"]
+
+
 def dev_trials() -> tuple[int, float | None]:
-    """Distinct development trials so far and the variance of their per-period net Sharpe ratios."""
-    ent = [e for e in entries() if e["era"] == "dev" and e.get("status") == "evaluated"]
-    ids = {e["id"] for e in ent}
-    srs = [e["metrics"].get("longShort", {}).get("deflated", {}).get("srPerPeriod") for e in ent]
+    """Distinct development trials so far, and the variance of their latest per-period net Sharpe.
+
+    A trial is a distinct model actually fit (see models.effective_signature): re-scoring the same
+    model with new accounting, or a spec that collapses to an existing one because some data is
+    unavailable, does not count again.
+    """
+    latest: dict[str, dict] = {}
+    for e in entries():
+        if e["era"] == "dev" and e.get("status") == "evaluated":
+            latest[identity(e)] = e
+    srs = [e["metrics"].get("longShort", {}).get("deflated", {}).get("srPerPeriod") for e in latest.values()]
     srs = [s for s in srs if s is not None and np.isfinite(s)]
     var = float(np.var(srs, ddof=1)) if len(srs) >= 5 else None
-    return len(ids), var
+    return len(latest), var
 
 
 def holdout_tests_this_week() -> int:

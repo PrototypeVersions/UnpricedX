@@ -24,7 +24,7 @@ from ..config import paths, section
 from ..features.context import Context, load_context
 from ..features.library import REGISTRY, families
 from ..features.panel import build_panel
-from ..models import calibrate, fit as fit_model, resolve_features, spec_id
+from ..models import calibrate, effective_signature, fit as fit_model, resolve_features, spec_id
 from ..util import iso, log, now_et, sha256_file, write_json
 from . import ledger
 from .metrics import summarize
@@ -85,7 +85,8 @@ def gates(metrics: dict, era: str, n_trials: int = 1) -> dict:
 
 def evaluate(idx: PanelIndex, spec: dict, era: str, data_sig: str, reason: str) -> dict | None:
     sid = spec_id(spec)
-    if ledger.has(sid, era, data_sig):
+    eff = effective_signature(spec, data_sig)
+    if ledger.has(sid, era, data_sig, eff):
         return None
     h = int(spec.get("horizon", 5))
     t0 = time.time()
@@ -99,7 +100,7 @@ def evaluate(idx: PanelIndex, spec: dict, era: str, data_sig: str, reason: str) 
     cal = calibrate(oos, h).to_dict()
     entry = ledger.record({
         "id": sid, "name": spec.get("name"), "era": era, "status": "evaluated", "reason": reason,
-        "spec": spec, "dataSig": data_sig, "metrics": m, "gates": gates(m, era, n_trials + 1), "calibration": cal,
+        "spec": spec, "dataSig": data_sig, "effSig": eff, "metrics": m, "gates": gates(m, era, n_trials + 1), "calibration": cal,
         "blocks": len(blocks), "seconds": round(time.time() - t0, 1), "code": code_version(),
         "oosStart": oos["date"].min().date().isoformat(), "oosEnd": oos["date"].max().date().isoformat(),
     })
@@ -111,30 +112,25 @@ def evaluate(idx: PanelIndex, spec: dict, era: str, data_sig: str, reason: str) 
     return entry
 
 
-def _best_learned() -> dict | None:
-    best, score = None, -np.inf
-    for e in ledger.entries():
-        if e["era"] != "dev" or e.get("status") != "evaluated" or e["spec"]["kind"] == "factor":
-            continue
-        s = e["metrics"].get("longShort", {}).get("sharpeNet")
-        if s is not None and np.isfinite(s) and s > score:
-            best, score = e, s
-    return best
+def _score(e: dict) -> tuple:
+    """Ranking of learned models: after-cost Sharpe of the hysteresis long-short, then IC t-stat."""
+    s = e["metrics"].get("longShort", {}).get("sharpeNet")
+    t = e["metrics"].get("ic", {}).get("tNW")
+    return (s if s is not None and np.isfinite(s) else -np.inf, t if t is not None and np.isfinite(t) else -np.inf)
+
+
+def top_learned(data_sig: str, k: int = 3) -> list[dict]:
+    learned = [e for e in ledger.current("dev", data_sig).values() if e["spec"]["kind"] != "factor"]
+    return sorted(learned, key=_score, reverse=True)[:k]
 
 
 def update_registry(data_sig: str) -> dict:
     lcfg = section("live")
     reg = ledger.registry()
-    dev = {}
-    for e in ledger.entries():
-        if e.get("status") == "evaluated" and e["era"] == "dev" and e.get("dataSig") == data_sig:
-            dev[e["id"]] = e
-    hold = {e["id"]: e for e in ledger.entries() if e.get("status") == "evaluated" and e["era"] == "holdout"}
+    dev = ledger.current("dev", data_sig)
+    hold = ledger.current("holdout", data_sig)
     learned = [e for e in dev.values() if e["spec"]["kind"] != "factor"]
-
-    def sharpe(e):
-        v = e["metrics"].get("longShort", {}).get("sharpeNet")
-        return v if v is not None and np.isfinite(v) else -np.inf
+    sharpe = _score
 
     gated = sorted([e for e in learned if e["gates"]["passed"] and e["id"] in hold and hold[e["id"]]["gates"]["passed"]],
                    key=sharpe, reverse=True)
@@ -146,6 +142,10 @@ def update_registry(data_sig: str) -> dict:
                   "devGates": e["gates"], "holdout": hold.get(e["id"], {}).get("metrics"),
                   "holdoutGates": hold.get(e["id"], {}).get("gates"),
                   "calibration": (hold.get(e["id"]) or e)["calibration"], "horizon": int(e["spec"].get("horizon", 5))})
+
+    for mid, info in reg["models"].items():          # keep live models' lab evidence current
+        if mid in dev and info.get("role") in ("champion", "challenger"):
+            add(dev[mid], info["role"], info.get("note", ""))
 
     current = reg.get("champion")
     status = reg.get("championStatus")
@@ -167,8 +167,7 @@ def update_registry(data_sig: str) -> dict:
     # challengers: gated first, then development passers, then the best remaining learned models (exploratory)
     challengers = [k for k, v in reg["models"].items() if v.get("role") == "challenger"]
     pool = [e for e in gated + dev_pass if e["id"] != reg.get("champion")]
-    pool += sorted([e for e in learned if e not in pool and e["id"] != reg.get("champion")],
-                   key=lambda e: e["metrics"]["ic"].get("tNW", -9), reverse=True)
+    pool += sorted([e for e in learned if e not in pool and e["id"] != reg.get("champion")], key=_score, reverse=True)
     for e in pool:
         if len(challengers) >= int(lcfg["maxChallengers"]):
             break
@@ -230,32 +229,37 @@ def run_sweep(budget_minutes: float | None = None, ctx: Context | None = None, m
             report["evaluated"].append(e["id"])
     done_dir = paths().lab / "queue" / "done"
     for f, spec in queue:
-        if ledger.has(spec_id(spec), "dev", data_sig):
+        if ledger.has(spec_id(spec), "dev", data_sig, effective_signature(spec, data_sig)):
             done_dir.mkdir(parents=True, exist_ok=True)
             shutil.move(str(f), done_dir / f.name)
 
     while not over():
-        best = _best_learned()
-        if not best:
+        nxt = None
+        for best in top_learned(data_sig, k=3):           # explore around the three best models, best first
+            todo = [s for s in neighbors(best["spec"], fams) if spec_runnable(s, fams)
+                    and not ledger.has(spec_id(s), "dev", data_sig, effective_signature(s, data_sig))]
+            if todo:
+                nxt = (todo[0], best)
+                break
+        if nxt is None:
             break
-        todo = [s for s in neighbors(best["spec"]) if spec_runnable(s, fams) and not ledger.has(spec_id(s), "dev", data_sig)]
-        if not todo:
-            break
-        e = evaluate(idx, todo[0], "dev", data_sig, f"neighbor of {best['id']}")
+        e = evaluate(idx, nxt[0], "dev", data_sig, f"neighbor of {nxt[1]['id']}")
         if e:
             report["evaluated"].append(e["id"])
 
     # holdout: development passers that have never been tested there, best first, capped per week
     cap = int(lab["maxHoldoutTestsPerWeek"]) - ledger.holdout_tests_this_week()
-    tested = {e["id"] for e in ledger.entries() if e["era"] == "holdout"}
-    cands = [e for e in ledger.entries() if e["era"] == "dev" and e.get("status") == "evaluated" and e["dataSig"] == data_sig
-             and e["gates"]["passed"] and e["spec"]["kind"] != "factor" and e["id"] not in tested]
-    cands.sort(key=lambda e: e["metrics"].get("longShort", {}).get("sharpeNet", -9), reverse=True)
+    tested = set(ledger.current("holdout", data_sig))
+    dev_now = ledger.current("dev", data_sig)
+    cands = [e for e in dev_now.values() if e["gates"]["passed"] and e["spec"]["kind"] != "factor" and e["id"] not in tested]
+    cands.sort(key=_score, reverse=True)
     reg0 = ledger.registry()
-    if reg0.get("champion") is None:   # the provisional default always gets one holdout look for the record
-        prov = [e for e in ledger.entries() if e.get("name") == DEFAULT_PROVISIONAL and e["era"] == "dev"
-                and e.get("dataSig") == data_sig and e["id"] not in tested and e not in cands]
-        cands = prov[-1:] + cands
+    if reg0.get("champion") is None or reg0.get("championStatus") == "provisional":
+        # the provisional champion always gets a holdout look on the current data, for the record
+        cid = reg0.get("champion")
+        prov = [e for e in dev_now.values() if (e["id"] == cid or (cid is None and e.get("name") == DEFAULT_PROVISIONAL))
+                and e["id"] not in tested and e not in cands]
+        cands = prov[:1] + cands
     for e in cands[: max(0, cap)]:
         h = evaluate(idx, e["spec"], "holdout", data_sig, "holdout test")
         if h:

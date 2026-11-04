@@ -22,3 +22,20 @@ Append-only log of choices that affect how results should be read.
   need about ten years to confirm an IC of 0.02, so it is kept for reference only.
 - **AI filing reader is forward-only**, because a language model has seen the outcomes of filings
   before its training cutoff.
+
+## 2026-11-03 (evening): accounting change after the first real-data sweep
+Made after seeing the first real-data results, so recorded here in full.
+- **What we saw:** learned models rank stocks with real skill (development IC ≈ 0.016, t ≈ 4.5; the
+  provisional champion's sealed-holdout IC 0.026, t 3.5, positive in every holdout year), but a weekly
+  top-minus-bottom decile rebuilt from scratch each week replaced ~60% of each leg, and costs of
+  ~14% a year erased a 6–14% gross spread.
+- **Change:** the primary economic test now uses the same hysteresis the live portfolio always used
+  (enter in the top/bottom 10%, keep until a name leaves the top/bottom 30%; long-only keeps names until
+  rank 40). The from-scratch version is still reported as `longShortFull`. Gates, eras and thresholds
+  are unchanged. `metricsVersion` 2 marks entries scored this way; earlier entries remain in the ledger.
+- **Why it is not moving the goalposts:** the lab was scoring a portfolio the live system never trades.
+  Re-scoring the same model is not counted as a new trial; the holdout re-looks it causes are logged and
+  capped like any other.
+- **Also:** trials are now counted by the model actually fit (`effSig`), so specs that collapse to the
+  same features when data is missing are not double-counted (36 → 30), and the search explores around
+  the three best models instead of stopping when the single best one's neighbors are exhausted.

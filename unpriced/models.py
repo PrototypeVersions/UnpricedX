@@ -37,6 +37,23 @@ def spec_id(spec: dict) -> str:
     return f"{spec.get('name', spec['kind'])}-{stable_hash(body, 8)}"
 
 
+def effective_signature(spec: dict, data_sig: str) -> str:
+    """Identity of the model that actually gets fit: features restricted to the families that have
+    data, plus kind, horizon and parameters. Two specs with the same signature are the same trial."""
+    fams = set(filter(None, (data_sig or "").split(",")))
+
+    def norm(s: dict) -> dict:
+        feats = [f for f in resolve_features(s) if not fams or REGISTRY[f].family in fams]
+        out = {"kind": s["kind"], "horizon": int(s.get("horizon", 5)), "params": s.get("params", {}), "features": sorted(feats)}
+        if s["kind"] == "factor":
+            out["sign"] = s.get("sign", REGISTRY[s["factor"]].sign)
+        if s["kind"] == "ensemble":
+            out["members"] = [norm(x) for x in s["members"]]
+            out["weights"] = s.get("weights")
+        return out
+    return stable_hash(norm(spec), 12)
+
+
 def resolve_features(spec: dict) -> list[str]:
     if spec["kind"] == "factor":
         return [spec["factor"]]

@@ -54,12 +54,13 @@ def queued_specs() -> list[tuple[Path, dict]]:
     return out
 
 
-def neighbors(best: dict) -> list[dict]:
-    """Small, interpretable perturbations of the current best learned model."""
+def neighbors(best: dict, available: list[str] | None = None) -> list[dict]:
+    """Small, interpretable perturbations of a good learned model."""
     out = []
     fams = best.get("families", [])
-    if best["kind"] in ("ridge", "gbm") and len(fams) > 2:
-        for f in fams:   # what does each family contribute?
+    usable = [f for f in fams if available is None or f in available]
+    if best["kind"] in ("ridge", "gbm") and len(usable) > 2:
+        for f in usable:   # what does each family that has data contribute?
             out.append({**copy.deepcopy(best), "name": f"{best['name']}-no_{f}", "families": [x for x in fams if x != f]})
     if best["kind"] == "gbm":
         base = best.get("params", {})
