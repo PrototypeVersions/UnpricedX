@@ -1,0 +1,100 @@
+name: Ops request
+
+# A git-only control channel: commit a JSON file to ops/requests/ to run a job, e.g.
+#   {"command": "bootstrap"}                      first full data download, then a first lab sweep
+#   {"command": "weekly", "minutes": 120}
+#   {"command": "sweep", "minutes": 60}
+#   {"command": "daily"}
+#   {"command": "site"}
+# The request moves to ops/done/ with the tail of the log, so whoever asked can read the result.
+on:
+  push:
+    branches: [main]
+    paths: ['ops/requests/**']
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'bootstrap | weekly | sweep | daily | site'
+        default: bootstrap
+      minutes:
+        default: '150'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: unpriced-state
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Restore data store
+        run: bash ops/store.sh pull
+      - name: Run requests
+        id: run
+        run: |
+          set +e
+          mkdir -p ops/done ops/requests
+          reqs=$(ls ops/requests/*.json 2>/dev/null)
+          if [ -z "$reqs" ] && [ -n "${{ inputs.command }}" ]; then
+            echo '{"command": "${{ inputs.command }}", "minutes": ${{ inputs.minutes || 150 }}}' > ops/requests/dispatch.json
+            reqs=ops/requests/dispatch.json
+          fi
+          status=0
+          for f in $reqs; do
+            cmd=$(python -c "import json,sys;print(json.load(open('$f'))['command'])")
+            mins=$(python -c "import json,sys;print(json.load(open('$f')).get('minutes',150))")
+            name=$(basename "$f" .json)
+            log="ops/done/${name}.log"
+            echo "== $f: $cmd ($mins min)"
+            case "$cmd" in
+              bootstrap) (python -m unpriced.cli bootstrap && python -m unpriced.cli sweep --minutes "$mins" && python -m unpriced.cli site) > "$log" 2>&1 ;;
+              weekly)    python -m unpriced.cli weekly --minutes "$mins" > "$log" 2>&1 ;;
+              sweep)     (python -m unpriced.cli sweep --minutes "$mins" && python -m unpriced.cli site) > "$log" 2>&1 ;;
+              daily)     python -m unpriced.cli daily > "$log" 2>&1 ;;
+              site)      python -m unpriced.cli site > "$log" 2>&1 ;;
+              *)         echo "unknown command $cmd" > "$log"; false ;;
+            esac
+            code=$?
+            [ $code -ne 0 ] && [ $code -ne 75 ] && status=$code
+            tail -n 120 "$log" > "$log.tail" && mv "$log.tail" "$log"
+            echo "exit: $code" >> "$log"
+            git mv -f "$f" "ops/done/${name}.json" 2>/dev/null || mv "$f" "ops/done/${name}.json"
+          done
+          echo "code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Save the record
+        run: bash ops/commit.sh "ops: $(date -u +%Y-%m-%dT%H:%MZ)"
+      - name: Save the data store
+        if: steps.run.outputs.code == '0'
+        run: bash ops/store.sh push
+      - name: Configure Pages
+        id: pages
+        continue-on-error: true
+        uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.pages.outcome == 'success'
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
+        if: steps.pages.outcome == 'success'
+        continue-on-error: true
+      - name: Fail if a request failed
+        if: steps.run.outputs.code != '0'
+        run: exit 1

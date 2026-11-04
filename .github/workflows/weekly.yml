@@ -1,0 +1,66 @@
+name: Weekly lab
+
+# Saturday: refresh every data source, run the research sweep inside a time budget,
+# test passers on the sealed holdout, update champion/challengers, refit live models.
+on:
+  schedule:
+    - cron: '40 9 * * 6'
+      timezone: 'America/New_York'
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: 'Research budget in minutes'
+        default: '200'
+      skip_data:
+        description: 'Skip the data refresh'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: unpriced-state
+  cancel-in-progress: false
+
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Restore data store
+        run: bash ops/store.sh pull
+      - name: Refresh data and run the lab
+        run: python -m unpriced.cli weekly --minutes ${{ inputs.minutes || '200' }} ${{ inputs.skip_data && '--skip-data' || '' }}
+      - name: Verify the record
+        run: python -m unpriced.cli verify --base HEAD
+      - name: Save the record
+        if: always()
+        run: bash ops/commit.sh "weekly lab: $(date -u +%Y-%m-%dT%H:%MZ)"
+      - name: Save the data store
+        if: success()
+        run: bash ops/store.sh push
+      - name: Configure Pages
+        id: pages
+        continue-on-error: true
+        uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.pages.outcome == 'success'
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
+        if: steps.pages.outcome == 'success'
+        continue-on-error: true

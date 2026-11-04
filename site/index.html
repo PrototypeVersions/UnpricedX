@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unpriced</title>
+<meta name="description" content="A stock-forecasting lab that freezes its predictions before the market opens and keeps score in public.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2318202B'/%3E%3Cpath d='M4 20 C10 20 12 9 16 9 S22 20 28 20' stroke='%2386A3FF' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap masthead-row">
+    <a class="wordmark" href="#overview">Unpriced</a>
+    <p class="tagline">A stock-forecasting lab that freezes its predictions before the open and keeps score in public.</p>
+  </div>
+  <nav class="wrap tabs" aria-label="Sections">
+    <a href="#overview">Overview</a>
+    <a href="#forecasts">Today's forecasts</a>
+    <a href="#live">Live record</a>
+    <a href="#portfolio">$1,000 portfolio</a>
+    <a href="#lab">Lab</a>
+    <a href="#filings">AI filings</a>
+    <a href="#method">How it works</a>
+  </nav>
+</header>
+
+<main class="wrap" id="main">
+  <section id="overview" class="view"></section>
+  <section id="forecasts" class="view" hidden></section>
+  <section id="live" class="view" hidden></section>
+  <section id="portfolio" class="view" hidden></section>
+  <section id="lab" class="view" hidden></section>
+  <section id="filings" class="view" hidden></section>
+  <section id="method" class="view" hidden></section>
+</main>
+
+<footer class="wrap foot">
+  <p>Research and paper trading only. Nothing here is investment advice. Source code, every frozen forecast and every experiment are in the
+  <a href="https://github.com/PrototypeVersions/UnpricedX">repository</a>.</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "project": "Unpriced",
+  "repo": "PrototypeVersions/UnpricedX",
+  "timezone": "America/New_York",
+
+  "data": {
+    "historyStart": "2004-01-01",
+    "priceProvider": "yahoo",
+    "benchmark": "SPY",
+    "contextSymbols": ["SPY", "QQQ", "IWM", "^VIX"],
+    "releaseTag": "datastore",
+    "yahooBatchSize": 80,
+    "yahooPauseSeconds": 4.0,
+    "adjustmentMismatchTolerance": 0.002,
+    "minCoverageForSession": 0.9,
+    "excludeExchanges": ["OTC", "CBOE", ""],
+    "excludeNamePattern": "(?i)\\b(ETF|ETN|FUND|TRUST|PORTFOLIO|INDEX|ISHARES|PROSHARES|DIREXION|SPDR|INVESCO QQQ|ACQUISITION CORP|SPAC)\\b",
+    "excludeSic": [6770, 6221, 6798]
+  },
+
+  "sec": {
+    "enabled": true,
+    "maxRequestsPerSecond": 8,
+    "userAgentApp": "Unpriced research lab (github.com/PrototypeVersions/UnpricedX)",
+    "contactEnvVar": "SEC_CONTACT_EMAIL",
+    "earningsItems": ["2.02"],
+    "fundamentalsLagSessions": 1
+  },
+
+  "universe": {
+    "minPrice": 5.0,
+    "liquidityWindow": 63,
+    "researchSize": 1000,
+    "tradableSize": 500,
+    "minHistorySessions": 252,
+    "minIndustryMembers": 5
+  },
+
+  "labels": {
+    "horizons": [1, 5, 21],
+    "entry": "next_open"
+  },
+
+  "lab": {
+    "devEnd": "2021-12-31",
+    "holdoutStart": "2022-01-01",
+    "trainStart": "2006-01-01",
+    "trainEveryNthDate": 5,
+    "refitEverySessions": 126,
+    "minTrainDates": 500,
+    "decileCount": 10,
+    "costTiersBps": [[200, 4.0], [500, 8.0], [1000, 15.0], [100000, 30.0]],
+    "weeklyBudgetMinutes": 210,
+    "maxHoldoutTestsPerWeek": 3,
+    "gates": {
+      "devIcTstatMin": 3.0,
+      "devNetPsrMin": 0.95,
+      "holdoutIcTstatMin": 2.0,
+      "holdoutNetSpreadMin": 0.0
+    }
+  },
+
+  "schedule": {
+    "daily": "Tue-Sat 06:10 ET, retries 07:10 and 08:20: process the previous session and freeze forecasts before the open",
+    "weekly": "Saturday 09:40 ET: refresh all data, run the research sweep, holdout tests and live refits",
+    "aiHealthCheck": "Tue-Sat 08:50 ET: a Claude session checks the cycle ran and opens a fix PR if something broke",
+    "aiResearch": "Sunday 10:30 ET: a Claude session reviews the lab and live record and proposes new experiments as a PR",
+    "aiReview": "First Sunday of each month: a Claude session writes a methodology and evidence review"
+  },
+
+  "live": {
+    "primaryHorizon": 5,
+    "settleMinutes": 90,
+    "forecastUniverse": "research",
+    "maxChallengers": 4,
+    "promotion": {
+      "alpha": 0.05,
+      "minBlocks": 26,
+      "metric": "ic_5d_nonoverlapping"
+    }
+  },
+
+  "portfolio": {
+    "startingCash": 1000.0,
+    "holdings": 10,
+    "exitRank": 40,
+    "rebalanceEverySessions": 5,
+    "baseCostBps": 2.0,
+    "noTradeBand": 0.02,
+    "longShortDecile": 10
+  },
+
+  "llm": {
+    "enabled": true,
+    "apiKeyEnvVar": "ANTHROPIC_API_KEY",
+    "model": "claude-haiku-5-5",
+    "maxFilingsPerDay": 150,
+    "maxCharsPerFiling": 40000,
+    "forms": ["8-K", "10-Q", "10-K"],
+    "eightKItems": ["1.01", "1.02", "2.01", "2.02", "2.05", "2.06", "3.01", "4.01", "4.02", "5.02", "7.01", "8.01"],
+    "signalDecaySessions": 5,
+    "overlayWeight": 0.25,
+    "minDaysBeforeTraining": 252
+  }
+}
