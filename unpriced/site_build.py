@@ -41,6 +41,12 @@ def _cumprod(values: list) -> list:
     return out
 
 
+def _null_summary() -> dict:
+    rows = read_jsonl(paths().lab / "null_controls.jsonl")
+    return {"runs": len(rows), "passed": sum(1 for r in rows if r.get("passed")),
+            "recent": rows[-6:]}
+
+
 def lab_json() -> dict:
     ent = [e for e in ledger.entries() if e.get("status") == "evaluated"]
     hold = {e["id"]: e for e in ent if e["era"] == "holdout"}
@@ -85,6 +91,7 @@ def lab_json() -> dict:
     fam = families()
     from .lab.runner import ic_threshold
     return {
+        "nullControls": _null_summary(),
         "updatedAt": iso(now_et()), "trials": n_trials, "icBarNow": round(ic_threshold(n_trials + 1), 2), "experiments": rows, "charts": charts,
         "eras": {"devEnd": section("lab")["devEnd"], "holdoutStart": section("lab")["holdoutStart"], "trainStart": section("lab")["trainStart"]},
         "gates": section("lab")["gates"], "lastSweep": read_json(paths().lab / "last_sweep.json", {}),

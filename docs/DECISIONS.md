@@ -39,3 +39,23 @@ Made after seeing the first real-data results, so recorded here in full.
 - **Also:** trials are now counted by the model actually fit (`effSig`), so specs that collapse to the
   same features when data is missing are not double-counted (36 → 30), and the search explores around
   the three best models instead of stopping when the single best one's neighbors are exhausted.
+
+## 2026-11-03 (night): stricter search, holdout and live statistics; inputs saved with every forecast
+Prompted by the second real-data sweep and by GPT's cross-review of the design.
+- **Search discipline.** The automatic search spent ~30 trials chaining small hyperparameter tweaks of one
+  model (each raising the significance bar for everything after it). Now: at most 6 automatic trials per
+  sweep, only around models with an IC t-stat ≥ 2, at most two modifications deep, structural changes
+  (drop a feature family, change horizon) before hyperparameters, and readable names (`root~mod~mod`).
+- **Live slots.** One slot per distinct fitted model (duplicates retired); exploratory challengers that failed
+  the gates must be pre-registered models, not tweaked variants.
+- **Holdout looks.** Every distinct model scored on the sealed 2022+ years raises the holdout bar
+  (Bonferroni over looks, never below t = 2) and looks are capped at 3 a week and 30 a year.
+- **Live bands.** The confidence sequence now uses a Newey-West long-run variance so persistent market
+  regimes cannot make it too narrow; tested on autocorrelated null data (≤ 8% false alarms over ten years
+  of weekly looks at ρ = 0.4). Median time to confirm IC 0.02 moved from ~119 to ~126 weeks.
+- **Null controls.** Each sweep runs pre-registered models on data whose outcomes are shuffled among the
+  stocks of each day and logs how often the gates pass (lab/null_controls.jsonl). Not counted as trials.
+- **Recomputable forecasts.** Each snapshot now stores the exact ranked inputs every model saw, plus a
+  fingerprint of that session's price rows and of the price store (idea borrowed from UnpricedZ).
+- **SEC identification.** The first SEC attempt was refused (HTTP 403); the User-Agent now follows SEC's
+  documented "<name> <email>" format, and refusals log SEC's explanation.

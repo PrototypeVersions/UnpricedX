@@ -61,11 +61,24 @@ def eb_confidence_sequence(x: np.ndarray, lo: float, hi: float, alpha: float = 0
     return {"n": n, "lower": lower, "upper": upper, "mean": mean}
 
 
-def asymptotic_cs(x: np.ndarray, alpha: float = 0.05, t_opt: int = 52, prior_sd: float = 0.1, prior_n: int = 5) -> dict:
+def _long_run_variance(x: np.ndarray, lags: int) -> float:
+    """Newey-West (Bartlett) long-run variance: weekly results are not independent (regimes persist),
+    and ignoring positive autocorrelation would make the band too narrow."""
+    e = x - x.mean()
+    n = len(e)
+    v = e @ e / n
+    for k in range(1, min(lags, n - 1) + 1):
+        v += 2 * (1 - k / (lags + 1)) * (e[k:] @ e[:-k]) / n
+    return max(v, 0.0)
+
+
+def asymptotic_cs(x: np.ndarray, alpha: float = 0.05, t_opt: int = 52, prior_sd: float = 0.1, prior_n: int = 5,
+                  hac_lags: int = 4) -> dict:
     """Running two-sided asymptotic CS for the mean.
 
-    The variance is estimated online and shrunk toward `prior_sd` with `prior_n` pseudo-observations
-    so the band is not spuriously narrow in the first few weeks.
+    The variance is a Newey-West long-run variance (robust to serial correlation between weeks),
+    estimated online and shrunk toward `prior_sd` with `prior_n` pseudo-observations so the band is
+    not spuriously narrow in the first few weeks. It is never allowed below the plain variance.
     """
     x = np.asarray(x, dtype=float)
     x = x[np.isfinite(x)]
@@ -76,8 +89,8 @@ def asymptotic_cs(x: np.ndarray, alpha: float = 0.05, t_opt: int = 52, prior_sd:
     rho2 = (2 * la + math.log(2 * la + 1)) / t_opt
     t = np.arange(1, n + 1)
     mean = np.cumsum(x) / t
-    ss = np.array([np.sum((x[:i] - x[:i].mean()) ** 2) for i in t])
-    var = (prior_n * prior_sd**2 + ss) / (prior_n + t - 1)
+    lrv = np.array([max(_long_run_variance(x[:i], hac_lags), float(np.var(x[:i]))) if i > 1 else 0.0 for i in t])
+    var = (prior_n * prior_sd**2 + lrv * t) / (prior_n + t)
     radius = np.sqrt(var) * np.sqrt(2 * (t * rho2 + 1) / (t**2 * rho2) * np.log(np.sqrt(t * rho2 + 1) / alpha))
     return {"n": n, "lower": list(mean - radius), "upper": list(mean + radius), "mean": list(mean)}
 

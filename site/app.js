@@ -374,6 +374,7 @@
         <dt>Ideas tested</dt><dd>${lab.trials ?? 0}</dd>
         <dt>Development years</dt><dd>${esc(lab.eras?.trainStart?.slice(0, 4) || "")} to ${esc(lab.eras?.devEnd?.slice(0, 4) || "")}, used freely</dd>
         <dt>Holdout years</dt><dd>${esc(lab.eras?.holdoutStart?.slice(0, 4) || "")} onward, sealed: each look is logged and capped at a few per week</dd>
+        <dt>False passes on shuffled data</dt><dd>${lab.nullControls?.runs ? `${lab.nullControls.passed} of ${lab.nullControls.runs} runs (each run shuffles outcomes so there is nothing real to find)` : "first check runs with the next weekly lab"}</dd>
         <dt>Last sweep</dt><dd>${last.finishedAt ? `${esc(dateFmt(last.finishedAt))}, ${last.evaluated?.length ?? 0} new experiments in ${last.minutes} min` : "not run yet"}</dd>
       </dl>
       <div class="note"><p>To pass, an idea must show a rank-correlation t-statistic above a bar that rises with every idea tried (now ${num(lab.icBarNow ?? 3, 2)}), make money after trading costs with 95% confidence, and then repeat on the sealed holdout years. History here comes from free data that only includes companies still listed today, which flatters some strategies.</p></div>`;

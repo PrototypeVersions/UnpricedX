@@ -54,29 +54,39 @@ def queued_specs() -> list[tuple[Path, dict]]:
     return out
 
 
+def _child(parent: dict, mod: str, **changes) -> dict:
+    """A neighbor keeps a pointer to its pre-registered root and a readable list of modifications."""
+    s = copy.deepcopy(parent)
+    s.update(changes)
+    root = parent.get("root", parent["name"])
+    mods = [m for m in parent.get("mods", []) if m.split("=")[0] != mod.split("=")[0]] + [mod]
+    s["root"], s["mods"], s["depth"] = root, mods, int(parent.get("depth", 0)) + 1
+    s["name"] = root + "~" + "~".join(sorted(mods))
+    return s
+
+
 def neighbors(best: dict, available: list[str] | None = None) -> list[dict]:
-    """Small, interpretable perturbations of a good learned model."""
+    """Small, interpretable perturbations of a good learned model (structural changes first)."""
     out = []
     fams = best.get("families", [])
     usable = [f for f in fams if available is None or f in available]
     if best["kind"] in ("ridge", "gbm") and len(usable) > 2:
         for f in usable:   # what does each family that has data contribute?
-            out.append({**copy.deepcopy(best), "name": f"{best['name']}-no_{f}", "families": [x for x in fams if x != f]})
+            out.append(_child(best, f"no_{f}", families=[x for x in fams if x != f]))
+    for h in (5, 21):
+        if best.get("horizon") != h:
+            s = _child(best, f"h{h}", horizon=h)
+            for m in s.get("members", []):
+                m["horizon"] = h
+            out.append(s)
     if best["kind"] == "gbm":
         base = best.get("params", {})
         for k, vals in {"learning_rate": [0.02, 0.08], "max_leaf_nodes": [15, 63], "l2_regularization": [0.1, 10.0],
                         "max_features": [0.4, 1.0]}.items():
             for v in vals:
-                out.append({**copy.deepcopy(best), "name": f"{best['name']}-{k}={v}", "params": {**base, k: v}})
+                if base.get(k) != v:
+                    out.append(_child(best, f"{k}={v}", params={**base, k: v}))
     if best["kind"] == "ridge":
         for a in [5.0, 500.0]:
-            out.append({**copy.deepcopy(best), "name": f"{best['name']}-alpha={a}", "params": {"alpha": a}})
-    for h in (5, 21):
-        if best.get("horizon") != h:
-            s = copy.deepcopy(best)
-            s["horizon"] = h
-            for m in s.get("members", []):
-                m["horizon"] = h
-            s["name"] = f"{best['name']}-h{h}"
-            out.append(s)
+            out.append(_child(best, f"alpha={a}", params={"alpha": a}))
     return out

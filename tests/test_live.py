@@ -23,6 +23,24 @@ def test_confidence_sequence_coverage_under_null(sd):
     assert misses / sims <= 0.06
 
 
+@pytest.mark.parametrize("rho", [0.2, 0.4])
+def test_confidence_sequence_coverage_with_persistent_regimes(rho):
+    """Weekly results are serially correlated in real markets. Under no skill with AR(1)
+    correlation, the band still rarely excludes zero after the minimum block count."""
+    rng = np.random.default_rng(3)
+    misses, sims = 0, 300
+    for _ in range(sims):
+        e = rng.normal(0, 0.08 * np.sqrt(1 - rho**2), 520)
+        x = np.empty(520)
+        x[0] = rng.normal(0, 0.08)
+        for i in range(1, 520):
+            x[i] = rho * x[i - 1] + e[i]
+        cs = sequential.skill(x, alpha=0.05)
+        if any(lo > 0 or up < 0 for lo, up in list(zip(cs["lower"], cs["upper"]))[26:]):
+            misses += 1
+    assert misses / sims <= 0.08
+
+
 def test_confidence_sequence_detects_real_edge():
     rng = np.random.default_rng(2)
     a = np.clip(rng.normal(0.12, 0.15, 400), -1, 1)

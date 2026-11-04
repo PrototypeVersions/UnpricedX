@@ -82,6 +82,11 @@ def cmd_weekly(args) -> None:
         site_build.build()
 
 
+def cmd_sec(args) -> None:
+    from .data import pipeline
+    print(dumps(pipeline.update_sec_job("weekly")))
+
+
 def cmd_sweep(args) -> None:
     from .lab.runner import run_sweep
     print(dumps(run_sweep(budget_minutes=args.minutes, max_new=args.max_new)))
@@ -180,6 +185,7 @@ def main(argv=None) -> None:
     s.add_argument("--max-new", type=int, default=None)
     s.set_defaults(fn=cmd_sweep)
     sub.add_parser("site").set_defaults(fn=cmd_site)
+    sub.add_parser("sec").set_defaults(fn=cmd_sec)
     v = sub.add_parser("verify")
     v.add_argument("--base", default=None)
     v.set_defaults(fn=cmd_verify)

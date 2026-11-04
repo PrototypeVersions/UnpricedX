@@ -86,13 +86,15 @@ def dev_trials() -> tuple[int, float | None]:
     return len(latest), var
 
 
-def holdout_tests_this_week() -> int:
-    week_ago = pd.Timestamp(now_et()).tz_localize(None) - pd.Timedelta(days=7)
-    n = 0
-    for e in entries():
-        if e["era"] == "holdout" and pd.Timestamp(e["at"][:19]) >= week_ago:
-            n += 1
-    return n
+def holdout_tests_this_week(days: int = 7) -> int:
+    since = pd.Timestamp(now_et()).tz_localize(None) - pd.Timedelta(days=days)
+    return sum(1 for e in entries() if e["era"] == "holdout" and pd.Timestamp(e["at"][:19]) >= since)
+
+
+def holdout_looks() -> int:
+    """Distinct models ever scored on the sealed holdout. Each look leaks a little information,
+    so the holdout gate's bar rises with this count (Bonferroni), like the development gate's."""
+    return len({identity(e) for e in entries() if e["era"] == "holdout" and e.get("status") == "evaluated"})
 
 
 def record(entry: dict) -> dict:

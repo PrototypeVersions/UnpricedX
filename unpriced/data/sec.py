@@ -58,7 +58,10 @@ class SecClient:
         if not contact:
             raise SecUnavailable(f"set {cfg['contactEnvVar']} to enable SEC EDGAR access")
         self.session = requests.Session()
-        self.session.headers.update({"User-Agent": f"{cfg['userAgentApp']} {contact}", "Accept-Encoding": "gzip, deflate"})
+        # SEC's documented format is "<name> <email>"; extra punctuation or URLs can be refused.
+        self.session.headers.update({"User-Agent": f"{cfg['userAgentApp']} {contact}", "Accept-Encoding": "gzip, deflate",
+                                     "Accept": "application/json, text/html;q=0.9, */*;q=0.8"})
+        self._explained = False
         self.min_interval = 1.0 / float(cfg["maxRequestsPerSecond"])
         self._last = 0.0
         self._lock = threading.Lock()
@@ -85,6 +88,10 @@ class SecClient:
                 return None
             if r.status_code in (403, 429, 500, 502, 503):
                 wait = 5 * (2 ** attempt)
+                if not self._explained:   # SEC explains refusals in the body (e.g. "Undeclared Automated Tool")
+                    snippet = re.sub(r"\s+", " ", html_to_text(r.text))[:240]
+                    L.warning("SEC refusal body: %s", snippet)
+                    self._explained = True
                 L.warning("SEC %s for %s; backing off %ss", r.status_code, url, wait)
                 time.sleep(wait)
                 continue

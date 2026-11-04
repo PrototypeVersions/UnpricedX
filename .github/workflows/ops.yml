@@ -6,6 +6,7 @@ name: Ops request
 #   {"command": "sweep", "minutes": 60}
 #   {"command": "daily"}
 #   {"command": "site"}
+#   {"command": "sec"}                            refresh SEC filings and fundamentals only
 # The request moves to ops/done/ with the tail of the log, so whoever asked can read the result.
 on:
   push:
@@ -69,6 +70,7 @@ jobs:
               sweep)     run="python -m unpriced.cli sweep --minutes $mins && python -m unpriced.cli site" ;;
               daily)     run="python -m unpriced.cli daily" ;;
               site)      run="python -m unpriced.cli site" ;;
+              sec)       run="python -m unpriced.cli sec && python -m unpriced.cli site" ;;
               *)         run="echo unknown command $cmd; false" ;;
             esac
             set -o pipefail

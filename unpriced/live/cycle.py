@@ -22,7 +22,7 @@ from ..features.panel import build_panel
 from ..lab import ledger
 from ..lab.runner import code_version
 from ..models import Calibration, Fitted
-from ..util import iso, log, now_et, read_json, write_json
+from ..util import iso, log, now_et, read_json, sha256_bytes, write_json
 from . import portfolio, promotion, scoring, snapshot
 
 L = log("cycle")
@@ -151,6 +151,21 @@ def run_daily(force: bool = False, skip_data: bool = False, provider=None) -> di
     # --- forecasts
     panel, models = predict_models(ctx, t, reg)
     add_llm_overlay(models, panel, t, ctx.dates, reg)
+    used = sorted({f for m in reg["models"].values() if m.get("role") in ("champion", "challenger")
+                   for f in m.get("fit", {}).get("features", [])})
+    inputs = {
+        "note": "Exact within-day ranked inputs the models saw (null = missing), so anyone can recompute the scores.",
+        "features": used,
+        "values": [[None if v != v else round(float(v), 4) for v in row] for row in panel[used].to_numpy()],
+        "liquidityRank": [None if v != v else int(v) for v in panel["liq_rank"].to_numpy()],
+        "industry": [None if v != v else int(v) for v in panel["industry"].to_numpy()],
+    }
+    day_rows = prices[(prices["date"] == t) & prices["ticker"].isin(set(panel["ticker"]))].sort_values("ticker")
+    fingerprint = {
+        "sessionPriceRowsSha256": sha256_bytes(day_rows.to_csv(index=False, float_format="%.6g").encode()),
+        "sessionPriceRows": int(len(day_rows)),
+        "priceStoreSha256": store.meta().get("pricesSha256") or (read_json(paths().store / "manifest.json", {}) or {}).get("tables", {}).get("prices", {}).get("sha256"),
+    }
     decided = now_et()
     entry = snapshot.entry_session(decided, t)
     snap = {
@@ -158,7 +173,7 @@ def run_daily(force: bool = False, skip_data: bool = False, provider=None) -> di
         "entrySession": entry.date().isoformat(), "dataThrough": t.date().isoformat(), "code": code_version(),
         "champion": reg["champion"], "championStatus": reg.get("championStatus"),
         "universe": list(panel["ticker"]), "tradable": [bool(x) for x in panel["tradable"]],
-        "models": models,
+        "models": models, "inputs": inputs, "dataFingerprint": fingerprint,
         "note": "Scores rank stocks within this universe for the stated horizon, entered at the entry session's open.",
     }
     link = snapshot.write(snap)

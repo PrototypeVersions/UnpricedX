@@ -22,7 +22,7 @@
   "sec": {
     "enabled": true,
     "maxRequestsPerSecond": 8,
-    "userAgentApp": "Unpriced research lab (github.com/PrototypeVersions/UnpricedX)",
+    "userAgentApp": "Unpriced Research",
     "contactEnvVar": "SEC_CONTACT_EMAIL",
     "earningsItems": ["2.02"],
     "fundamentalsLagSessions": 1
@@ -53,6 +53,11 @@
     "costTiersBps": [[200, 4.0], [500, 8.0], [1000, 15.0], [100000, 30.0]],
     "weeklyBudgetMinutes": 210,
     "maxHoldoutTestsPerWeek": 3,
+    "maxHoldoutTestsPerYear": 30,
+    "maxAutoTrialsPerSweep": 6,
+    "maxNeighborDepth": 2,
+    "minIcTstatToExplore": 2.0,
+    "nullControlsPerSweep": 2,
     "gates": {
       "devIcTstatMin": 3.0,
       "devNetPsrMin": 0.95,

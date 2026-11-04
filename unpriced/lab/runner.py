@@ -25,7 +25,7 @@ from ..features.context import Context, load_context
 from ..features.library import REGISTRY, families
 from ..features.panel import build_panel
 from ..models import calibrate, effective_signature, fit as fit_model, resolve_features, spec_id
-from ..util import iso, log, now_et, sha256_file, write_json
+from ..util import append_jsonl, iso, log, now_et, sha256_file, write_json
 from . import ledger
 from .metrics import summarize
 from .specs import DEFAULT_PROVISIONAL, initial_specs, neighbors, queued_specs
@@ -75,12 +75,13 @@ def gates(metrics: dict, era: str, n_trials: int = 1) -> dict:
             "positiveNet": bool(ls.get("netAnnual", -1) > 0),
         }
         return {"checks": checks, "passed": all(checks.values()), "icBar": round(bar, 3), "trials": n_trials}
-    else:
-        checks = {
-            "icTstat": bool(ic.get("tNW", 0) >= g["holdoutIcTstatMin"]),
-            "positiveNet": bool(ls.get("netAnnual", -1) > g["holdoutNetSpreadMin"]),
-        }
-    return {"checks": checks, "passed": all(checks.values())}
+    looks = max(1, ledger.holdout_looks() + 1)
+    bar = max(float(g["holdoutIcTstatMin"]), float(norm.ppf(1 - 0.05 / (2 * looks))))
+    checks = {
+        "icTstat": bool(ic.get("tNW", 0) >= bar),
+        "positiveNet": bool(ls.get("netAnnual", -1) > g["holdoutNetSpreadMin"]),
+    }
+    return {"checks": checks, "passed": all(checks.values()), "icBar": round(bar, 3), "holdoutLooks": looks}
 
 
 def evaluate(idx: PanelIndex, spec: dict, era: str, data_sig: str, reason: str) -> dict | None:
@@ -120,7 +121,12 @@ def _score(e: dict) -> tuple:
 
 
 def top_learned(data_sig: str, k: int = 3) -> list[dict]:
-    learned = [e for e in ledger.current("dev", data_sig).values() if e["spec"]["kind"] != "factor"]
+    """Up to k learned models worth exploring around: some real evidence of ranking skill and
+    not already deep in a chain of tweaks (deep chains mostly fit noise and inflate the trial count)."""
+    lab = section("lab")
+    learned = [e for e in ledger.current("dev", data_sig).values() if e["spec"]["kind"] != "factor"
+               and e["metrics"].get("ic", {}).get("tNW", 0) >= float(lab["minIcTstatToExplore"])
+               and int(e["spec"].get("depth", 0)) < int(lab["maxNeighborDepth"])]
     return sorted(learned, key=_score, reverse=True)[:k]
 
 
@@ -164,21 +170,66 @@ def update_registry(data_sig: str) -> dict:
             reg["champion"], reg["championStatus"] = prov["id"], "provisional"
             reg["history"].append({"at": iso(now_et()), "event": "provisional champion set", "to": prov["id"]})
 
+    # one live slot per distinct fitted model: retire challengers that duplicate the champion or each other
+    seen = {ledger.identity(dev[reg["champion"]])} if reg.get("champion") in dev else set()
+    for k, v in reg["models"].items():
+        if v.get("role") == "challenger" and k in dev:
+            ident = ledger.identity(dev[k])
+            if ident in seen:
+                v["role"] = "retired"
+                v["note"] = "retired: same fitted model as another live model on the current data"
+                reg["history"].append({"at": iso(now_et()), "event": "challenger retired (duplicate)", "model": k})
+            seen.add(ident)
     # challengers: gated first, then development passers, then the best remaining learned models (exploratory)
     challengers = [k for k, v in reg["models"].items() if v.get("role") == "challenger"]
     pool = [e for e in gated + dev_pass if e["id"] != reg.get("champion")]
-    pool += sorted([e for e in learned if e not in pool and e["id"] != reg.get("champion")], key=_score, reverse=True)
+    pool += sorted([e for e in learned if e not in pool and e["id"] != reg.get("champion") and e.get("reason") == "pre-registered"],
+                   key=_score, reverse=True)
     for e in pool:
         if len(challengers) >= int(lcfg["maxChallengers"]):
             break
-        if e["id"] in challengers:
+        if e["id"] in challengers or ledger.identity(e) in seen:
             continue
+        seen.add(ledger.identity(e))
         note = "passed all gates" if e in gated else "passed development gates" if e in dev_pass else "exploratory: did not pass gates"
         add(e, "challenger", note)
         challengers.append(e["id"])
         reg["history"].append({"at": iso(now_et()), "event": "challenger added", "to": e["id"], "note": note})
     ledger.save_registry(reg)
     return reg
+
+
+def null_controls(idx: PanelIndex, data_sig: str, n: int) -> list[dict]:
+    """Run pre-registered learned models on a copy of the panel whose outcomes are shuffled among
+    the stocks of each day (destroys any real cross-sectional signal, keeps everything else).
+    The share that passes the development gates estimates the gates' false-pass rate. These runs
+    are diagnostics, logged in lab/null_controls.jsonl, never ledger trials."""
+    names = ["ens_all", "gbm_all", "ridge_all"]
+    specs = [s for s in initial_specs() if s["name"] in names]
+    seed = int(time.time()) % 2**31
+    rng = np.random.default_rng(seed)
+    p = idx.panel
+    order = np.lexsort((rng.random(len(p)), p["date"].to_numpy()))     # p is date-sorted: permutes within each date
+    labels = [c for c in p.columns if c.startswith(("fwd_", "target_"))]
+    q = p.copy()
+    q[labels] = p[labels].to_numpy()[order]
+    nidx = PanelIndex(q)
+    n_trials, sr_var = ledger.dev_trials()
+    out = []
+    for spec in specs[:n]:
+        h = int(spec.get("horizon", 5))
+        oos, _, _ = walk_forward(nidx, spec, "dev")
+        if oos.empty:
+            continue
+        m = summarize(oos, h, n_trials=n_trials, sr_var_trials=sr_var)
+        m.pop("_series", None)
+        g = gates(m, "dev", n_trials)
+        row = {"at": iso(now_et()), "spec": spec["name"], "seed": seed, "dataSig": data_sig, "icMean": m["ic"].get("mean"),
+               "icT": m["ic"].get("tNW"), "netAnnual": m.get("longShort", {}).get("netAnnual"), "passed": g["passed"]}
+        append_jsonl(paths().lab / "null_controls.jsonl", row)
+        out.append(row)
+        L.info("null control %s: IC=%+.4f t=%+.2f passed=%s", spec["name"], row["icMean"] or 0, row["icT"] or 0, row["passed"])
+    return out
 
 
 def refit_live(idx: PanelIndex, reg: dict | None = None) -> dict:
@@ -233,7 +284,11 @@ def run_sweep(budget_minutes: float | None = None, ctx: Context | None = None, m
             done_dir.mkdir(parents=True, exist_ok=True)
             shutil.move(str(f), done_dir / f.name)
 
-    while not over():
+    if not over() and budget > 0:
+        report["nullControls"] = null_controls(idx, data_sig, int(lab["nullControlsPerSweep"]))
+
+    auto = 0
+    while not over() and auto < int(lab["maxAutoTrialsPerSweep"]):
         nxt = None
         for best in top_learned(data_sig, k=3):           # explore around the three best models, best first
             todo = [s for s in neighbors(best["spec"], fams) if spec_runnable(s, fams)
@@ -244,11 +299,13 @@ def run_sweep(budget_minutes: float | None = None, ctx: Context | None = None, m
         if nxt is None:
             break
         e = evaluate(idx, nxt[0], "dev", data_sig, f"neighbor of {nxt[1]['id']}")
+        auto += 1
         if e:
             report["evaluated"].append(e["id"])
 
     # holdout: development passers that have never been tested there, best first, capped per week
-    cap = int(lab["maxHoldoutTestsPerWeek"]) - ledger.holdout_tests_this_week()
+    cap = min(int(lab["maxHoldoutTestsPerWeek"]) - ledger.holdout_tests_this_week(),
+              int(lab["maxHoldoutTestsPerYear"]) - ledger.holdout_tests_this_week(days=365))
     tested = set(ledger.current("holdout", data_sig))
     dev_now = ledger.current("dev", data_sig)
     cands = [e for e in dev_now.values() if e["gates"]["passed"] and e["spec"]["kind"] != "factor" and e["id"] not in tested]
