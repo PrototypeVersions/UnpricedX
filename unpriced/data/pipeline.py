@@ -46,7 +46,7 @@ def active_tickers(recent_days: int = 10) -> list[str]:
     if c.empty:
         return []
     cutoff = (now_et() - pd.Timedelta(days=recent_days)).date().isoformat()
-    return sorted(c.loc[c["lastSeen"] >= cutoff, "ticker"].astype(str))
+    return sorted(t for t in c.loc[c["lastSeen"] >= cutoff, "ticker"].astype(str) if t and t != "nan")
 
 
 def recent_universe(sessions_back: int = 40) -> list[str]:

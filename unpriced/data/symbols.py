@@ -31,7 +31,8 @@ def _read(url: str) -> pd.DataFrame:
     r = requests.get(url, timeout=60, headers={"User-Agent": "Unpriced research lab (github.com/PrototypeVersions/UnpricedX)"})
     r.raise_for_status()
     lines = [ln for ln in r.text.splitlines() if ln and not ln.startswith("File Creation Time")]
-    return pd.read_csv(io.StringIO("\n".join(lines)), sep="|", dtype=str).fillna("")
+    # keep_default_na=False: real tickers such as "NA" must not turn into missing values
+    return pd.read_csv(io.StringIO("\n".join(lines)), sep="|", dtype=str, keep_default_na=False, na_values=[])
 
 
 def parse(nasdaq: pd.DataFrame, other: pd.DataFrame) -> pd.DataFrame:
@@ -48,7 +49,7 @@ def parse(nasdaq: pd.DataFrame, other: pd.DataFrame) -> pd.DataFrame:
     df = df[df["name"].str.contains(KEEP_NAME) & ~df["name"].str.contains(DROP_NAME)]
     df = df[~df["status"].isin(["D", "E", "H"])]                     # deficient / delinquent / both
     df["ticker"] = df["ticker"].str.replace(".", "-", regex=False).str.upper()
-    df = df[~df["ticker"].str.contains(r"[\$\^/= ]", regex=True)]
+    df = df[(df["ticker"].str.len() > 0) & ~df["ticker"].str.contains(r"[\$\^/= ]", regex=True)]
     df["exchange"] = df["exchange_code"].map(EXCHANGES)
     return df[["ticker", "name", "exchange"]].drop_duplicates("ticker").sort_values("ticker").reset_index(drop=True)
 
