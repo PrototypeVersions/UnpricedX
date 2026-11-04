@@ -60,8 +60,11 @@ champion; after that only live evidence can.
 
 ## Paper portfolio
 $1,000; long-only; 10 equal-weight names from the tradable universe by champion rank; keep until
-rank > 40; rebalance every 5 sessions at the first open after the decision; 2 bps + liquidity-tier
-cost per side; 2% no-trade band; total-return marking; SPY benchmark from the first fill.
+rank > 40; at most 3 names from one statistical sector (~50 stocks whose residual returns co-moved
+over the past year; refreshed each January and July from past data only); rebalance every 5 sessions
+at the first open after the decision; 2 bps + liquidity-tier cost per side; 2% no-trade band;
+total-return marking; SPY benchmark from the first fill. The lab's long-only test calls the same
+selection function (`live/portfolio.py: select_holdings`).
 
 ## Power
 With ~1,000 names a weekly IC has a standard deviation of roughly 0.05–0.10. At 0.08, the median time

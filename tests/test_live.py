@@ -87,3 +87,29 @@ def test_portfolio_fills_at_open_and_includes_dividends(tmp_path, monkeypatch):
     rebased.loc[dates[:2], "AAA"] *= 0.98
     portfolio.mark(st, dates[2], pd.Series({"AAA": 11.0, "SPY": 101.0}), rebased)
     assert st["equity"] == pytest.approx(1000 * 11.0 / 9.8, rel=1e-6)
+
+
+def test_portfolio_caps_names_per_sector_and_lab_uses_the_same_rule():
+    from unpriced.live.portfolio import select_holdings
+    from unpriced.lab.metrics import long_only
+
+    ranked = [f"S{i}" for i in range(1, 21)]
+    ind = {t: (0 if int(t[1:]) <= 8 else int(t[1:])) for t in ranked}   # the eight best names share one sector
+    ind["S20"] = float("nan")                                            # unknown sector: not capped
+    assert select_holdings(ranked, [], 5, 40) == ranked[:5]
+    assert select_holdings(ranked, [], 5, 40, ind, 3) == ["S1", "S2", "S3", "S9", "S10"]
+    # held names inside the exit rank are kept best-first, but the cap applies to them too
+    held = ["S8", "S7", "S6", "S5", "S12"]
+    assert select_holdings(ranked, held, 5, 40, ind, 3) == ["S5", "S6", "S7", "S12", "S9"]
+    assert select_holdings(ranked, held, 5, 40) == ["S5", "S6", "S7", "S8", "S12"]
+
+    # the lab's history test picks exactly what the live rule picks
+    rows = []
+    for d in pd.bdate_range("2020-01-01", periods=10):
+        for i, t in enumerate(ranked * 2):
+            rows.append({"date": d, "ticker": f"{t}_{i // 20}", "pred": -i, "fwd_5": 0.01 * (i < 8), "bench_5": 0.0,
+                         "liq_rank": 1, "tradable": True, "sector": 0 if i < 8 else i})
+    df = pd.DataFrame(rows)
+    capped = long_only(df, "pred", 5, n=5, exit_rank=10, max_per_sector=3)
+    free = long_only(df, "pred", 5, n=5, exit_rank=10, max_per_sector=None)
+    assert np.allclose(capped["gross"], 0.01 * 3 / 5) and np.allclose(free["gross"], 0.01)

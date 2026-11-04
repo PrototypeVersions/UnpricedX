@@ -159,6 +159,7 @@ def run_daily(force: bool = False, skip_data: bool = False, provider=None) -> di
         "values": [[None if v != v else round(float(v), 4) for v in row] for row in panel[used].to_numpy()],
         "liquidityRank": [None if v != v else int(v) for v in panel["liq_rank"].to_numpy()],
         "industry": [None if v != v else int(v) for v in panel["industry"].to_numpy()],
+        "sector": [None if v != v else int(v) for v in panel["sector"].to_numpy()] if "sector" in panel else None,
     }
     day_rows = prices[(prices["date"] == t) & prices["ticker"].isin(set(panel["ticker"]))].sort_values("ticker")
     fingerprint = {

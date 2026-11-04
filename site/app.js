@@ -322,7 +322,7 @@
     const el = $("#portfolio");
     const p = D.portfolio || {};
     const rules = p.rules || {};
-    const rulesText = `Long only, ${rules.holdings ?? 10} equal-weight positions from the 500 most liquid stocks, chosen by the champion's ranking. A holding is kept until it drops below rank ${rules.exitRank ?? 40}. Rebalanced every ${rules.rebalanceEverySessions ?? 5} sessions at the first open after the forecast is frozen, with trading costs of ${rules.baseCostBps ?? 2} bps plus a spread estimate per side.`;
+    const rulesText = `Long only, ${rules.holdings ?? 10} equal-weight positions from the 500 most liquid stocks, chosen by the champion's ranking. A holding is kept until it drops below rank ${rules.exitRank ?? 40}.${rules.maxPerSector ? ` At most ${rules.maxPerSector} come from one sector (a group of about ${rules.sectorSize ?? 50} stocks whose prices have moved together over the past year), so one theme can't fill the portfolio.` : ""} Rebalanced every ${rules.rebalanceEverySessions ?? 5} sessions at the first open after the forecast is frozen, with trading costs of ${rules.baseCostBps ?? 2} bps plus a spread estimate per side.`;
     if (!p.status || p.status === "pre-live" || !p.curve?.length) {
       el.innerHTML = `<h1>$1,000 portfolio</h1><p class="lede">${esc(rulesText)}</p><p class="empty">${p.pending ? `First orders are queued for the ${esc(dateFmt(p.pending.executeSession))} open.` : "The portfolio starts with the first frozen forecast."}</p>`;
       return;

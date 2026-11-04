@@ -40,7 +40,9 @@ def test_industries_use_only_past_returns(market, ctx):
     cut = ctx.dates[int(len(ctx.dates) * 0.8)]
     prices = market.tables["prices"]
     trunc = load_context(prices=prices[prices["date"] <= cut])
-    a = ctx.industry.loc[:cut]
-    b = trunc.industry.reindex_like(a)
-    both = a.notna() & b.notna()
-    assert ((a[both] - b[both]).abs().fillna(0).to_numpy() == 0).all()
+    for name in ("industry", "sector"):        # sectors need >= 200 names, so they are empty in this small market
+        a = getattr(ctx, name).loc[:cut]
+        b = getattr(trunc, name).reindex_like(a)
+        both = a.notna() & b.notna()
+        assert name == "sector" or both.to_numpy().any()
+        assert ((a[both] - b[both]).abs().fillna(0).to_numpy() == 0).all()

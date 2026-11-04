@@ -9,10 +9,15 @@ adjusted prices, so dividends and splits are handled without tracking share coun
 
 Rules (config.portfolio): long-only, equal weight, `holdings` names from the tradable universe
 ranked by the champion's score; a held name is kept until it falls below `exitRank`
-(hysteresis to cut turnover); rebalance every `rebalanceEverySessions`; costs per side are a base
-plus a liquidity-tier spread estimate. SPY bought at the first fill is the benchmark.
+(hysteresis to cut turnover); at most `maxPerSector` names from one statistical sector (about
+`sectorSize` stocks whose returns moved together over the past year; see data/industries.py);
+rebalance every `rebalanceEverySessions`; costs per side are a base plus a liquidity-tier spread
+estimate. SPY bought at the first fill is the benchmark. The lab scores the same rules on history
+through `select_holdings`, so the backtest and the live portfolio cannot drift apart.
 """
 from __future__ import annotations
+
+from collections import Counter
 
 import pandas as pd
 
@@ -70,6 +75,51 @@ def mark(st: dict, session: pd.Timestamp, adj_close: pd.Series, adj_open: pd.Dat
     st["markedAt"] = iso(now_et())
 
 
+def _group(g):
+    """Group id, or None when unknown (too little history to cluster); unknown names are not capped."""
+    if g is None:
+        return None
+    try:
+        return None if g != g else int(g)
+    except (TypeError, ValueError):
+        return None
+
+
+def select_holdings(ranked: list[str], held, n: int, exit_rank: int, groups: dict | None = None,
+                    max_per_group: int | None = None) -> list[str]:
+    """The portfolio rule, shared by the live portfolio and the lab.
+
+    `ranked` is best first. Held names still inside `exit_rank` are kept (best first), then the list
+    is filled from the top; with `max_per_group`, a name is skipped (or a held name let go) when
+    its group already has that many, so one group can never fill the portfolio.
+    """
+    rank = {t: i + 1 for i, t in enumerate(ranked)}
+    cap = int(max_per_group) if max_per_group else 0
+    groups = groups or {}
+    count: Counter = Counter()
+    out: list[str] = []
+
+    def take(t: str) -> None:
+        g = _group(groups.get(t))
+        if cap and g is not None:
+            if count[g] >= cap:
+                return
+            count[g] += 1
+        out.append(t)
+
+    for t in sorted((t for t in held if rank.get(t, 10**9) <= exit_rank), key=rank.get):
+        if len(out) < n:
+            take(t)
+    chosen = set(out)
+    for t in ranked:
+        if len(out) >= n:
+            break
+        if t not in chosen:
+            take(t)
+            chosen.add(t)
+    return out
+
+
 def decide(st: dict, snap: dict, model_id: str, liq_rank: pd.Series) -> dict | None:
     """Target holdings for the next open, or None if no rebalance is due."""
     cfg = section("portfolio")
@@ -79,13 +129,14 @@ def decide(st: dict, snap: dict, model_id: str, liq_rank: pd.Series) -> dict | N
         return None
     df = pd.DataFrame({"ticker": snap["universe"], "score": snap["models"][model_id]["score"], "tradable": snap["tradable"]})
     df = df[df["tradable"] & df["score"].notna()].sort_values("score", ascending=False).reset_index(drop=True)
-    df["rank"] = df.index + 1
-    n, exit_rank = int(cfg["holdings"]), int(cfg["exitRank"])
-    keep = [t for t in st["positions"] if t in set(df.loc[df["rank"] <= exit_rank, "ticker"])]
-    fill = [t for t in df["ticker"] if t not in keep][: max(0, n - len(keep))]
-    target = (keep + fill)[:n]
+    sec = (snap.get("inputs") or {}).get("sector")
+    sector = dict(zip(snap["universe"], sec)) if sec is not None and len(sec) == len(snap["universe"]) else {}
+    cap = cfg.get("maxPerSector")
+    target = select_holdings(list(df["ticker"]), list(st["positions"]), int(cfg["holdings"]), int(cfg["exitRank"]),
+                             sector, cap)
     return {"model": model_id, "decidedFrom": snap["session"], "decidedAt": snap["decidedAt"],
-            "executeSession": snap["entrySession"], "targets": target,
+            "executeSession": snap["entrySession"], "targets": target, "maxPerSector": cap if sector else None,
+            "sectors": {t: _group(sector.get(t)) for t in target},
             "costBps": {t: float(cost_bps(pd.Series([liq_rank.get(t, 1e6)])).iloc[0]) + float(cfg["baseCostBps"]) for t in target}}
 
 

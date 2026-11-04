@@ -90,6 +90,8 @@
     "startingCash": 1000.0,
     "holdings": 10,
     "exitRank": 40,
+    "maxPerSector": 3,
+    "sectorSize": 50,
     "rebalanceEverySessions": 5,
     "baseCostBps": 2.0,
     "noTradeBand": 0.02,

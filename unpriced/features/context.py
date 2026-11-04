@@ -32,6 +32,7 @@ class Context:
     events: pd.DataFrame            # earnings events: ticker, session
     filings: pd.DataFrame           # all filings with reaction sessions (for intensity features)
     fundamentals: pd.DataFrame
+    sector: pd.DataFrame | None = None   # coarser groups (~50 names) for the portfolio's concentration cap
     extras: dict = field(default_factory=dict)
 
     @property
@@ -67,12 +68,14 @@ def load_context(start: str | None = None, end: str | None = None, prices: pd.Da
     tick = member["research"].columns
     rets = mats["adj_close"][tick].pct_change(fill_method=None)
     ind = statistical_industries(rets, market_ret, member["research"])
+    sec = statistical_industries(rets, market_ret, member["research"],
+                                 per_cluster=int(section("portfolio").get("sectorSize", 50)))
     events, filings = _events(mats["adj_close"].index)
     fundamentals = store.read_or_empty("fundamentals")
     L.info("context: %d sessions x %d tickers, %d earnings events, %d fundamental rows",
            len(mats["adj_close"]), len(tick), len(events), len(fundamentals))
     ctx = Context(mats=mats, member=member, market_ret=market_ret, industry=ind, events=events,
-                  filings=filings, fundamentals=fundamentals)
+                  filings=filings, fundamentals=fundamentals, sector=sec)
     ctx.extras["ret"] = rets
     return ctx
 

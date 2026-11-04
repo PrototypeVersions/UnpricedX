@@ -52,6 +52,8 @@ def build_panel(ctx: Context, names: list[str], horizons: list[int] | None = Non
     data["liq_rank"] = ctx.member["liq_rank"].reindex(index=dates, columns=tick).to_numpy()[rows, cols].astype("float32")
     data["tradable"] = ctx.member["tradable"].reindex(index=dates, columns=tick).fillna(False).to_numpy()[rows, cols]
     data["industry"] = ctx.industry.reindex(index=dates, columns=tick).to_numpy()[rows, cols]
+    if ctx.sector is not None:
+        data["sector"] = ctx.sector.reindex(index=dates, columns=tick).to_numpy()[rows, cols]
     if labels:
         bench = section("data")["benchmark"]
         for h in horizons:

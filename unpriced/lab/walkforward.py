@@ -98,7 +98,8 @@ def walk_forward(idx: PanelIndex, spec: dict, era: str, refit: int | None = None
         model = fit_model(spec, train, cache=FIT_CACHE)
         test = idx.rows(block)
         pred = model.predict(test)
-        keep = ["date", "ticker", "liq_rank", "tradable"] + [c for c in test.columns if c.startswith(("fwd_", "bench_"))]
+        keep = ["date", "ticker", "liq_rank", "tradable"] + (["sector"] if "sector" in test.columns else []) \
+            + [c for c in test.columns if c.startswith(("fwd_", "bench_"))]
         o = test[keep].copy()
         o["pred"] = pred.astype("float32")
         outs.append(o)

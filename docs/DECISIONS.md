@@ -59,3 +59,28 @@ Prompted by the second real-data sweep and by GPT's cross-review of the design.
   fingerprint of that session's price rows and of the price store (idea borrowed from UnpricedZ).
 - **SEC identification.** The first SEC attempt was refused (HTTP 403); the User-Agent now follows SEC's
   documented "<name> <email>" format, and refusals log SEC's explanation.
+
+## 2026-11-03 (late): the paper portfolio holds at most 3 names from one statistical sector
+- **What prompted it.** The first portfolio decision (from the 2026-11-03 forecast, filled at the
+  2026-11-04 open) picked ten chip and hardware makers (MU, AMD, LRCX, AMAT, MRVL, WDC, TER, ASX, GLW,
+  ALAB). That is one bet on one theme, not a test of stock selection. The decision was made after
+  seeing the portfolio's composition and before any of its returns were known.
+- **Change.** From the next rebalance decision on (expected from the 2026-11-10 forecast), at most 3 of
+  the 10 holdings may come from one *statistical sector*: groups of about 50 stocks whose market-residual
+  returns moved together over the past year, built the same way and on the same calendar-anchored
+  January/July refresh as the statistical industries, so they use only past data. Held names count
+  toward the cap and the lowest-ranked excess holding is sold. Names with too little history to be
+  grouped are not capped. The 2026-11-04 orders stay exactly as decided.
+- **Why sectors, not the existing industries.** The ~40 statistical industries (about 25 stocks each)
+  split the theme across three groups, so a cap of 3 per industry would still have held six chip names.
+  With groups of about 50 (~20 groups) the whole complex is one group and a cap of 3 gives MU, AMD,
+  LRCX, BHP, JCI, FCX, CAT, STT, CCJ, NUE; groups of about 120 (~8) start merging unrelated industries
+  (e.g. JCI and CAT with semiconductors). The size was chosen by looking at that night's groups, not at
+  any backtest result, and will not be tuned on results.
+- **Lab.** The lab's long-only test now calls the live portfolio's own selection function, so history and
+  live follow the same rule. `metricsVersion` 3 marks entries scored this way; version-2 entries remain in
+  the ledger. The primary tests (IC and the hysteresis long-short) do not change, so gates are unaffected.
+  This Saturday's sweep re-scores everything anyway, because SEC data now adds fundamental families
+  (new `dataSig`); re-scoring the same model is not a new trial.
+- **Forecasts are untouched.** The cap changes which ranked names the paper portfolio buys, not the
+  ranks that are frozen and scored. Each order now records the cap and the sector of every target.

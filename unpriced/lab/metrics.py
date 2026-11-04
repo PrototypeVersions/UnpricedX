@@ -18,7 +18,8 @@ import pandas as pd
 from scipy.stats import norm
 
 EULER_GAMMA = 0.5772156649
-METRICS_VERSION = 2   # 2: hysteresis portfolios (matching the live portfolio) are the primary economic test
+METRICS_VERSION = 3   # 2: hysteresis portfolios (matching the live portfolio) are the primary economic test
+                      # 3: long-only also applies the live portfolio's cap of names per statistical sector
 
 
 def daily_ic(df: pd.DataFrame, pred: str, target: str, min_names: int = 30) -> pd.Series:
@@ -128,24 +129,28 @@ def _cost_lookup(day: pd.DataFrame, cost_bps) -> dict:
     return dict(zip(day["ticker"], cost_bps.reindex(day["ticker"]).fillna(30.0).to_numpy()))
 
 
-def long_only(df: pd.DataFrame, pred: str, h: int, n: int | None = None, exit_rank: int | None = None) -> pd.DataFrame:
+def long_only(df: pd.DataFrame, pred: str, h: int, n: int | None = None, exit_rank: int | None = None,
+              max_per_sector: int | None | str = "config") -> pd.DataFrame:
     """The live paper portfolio's rules on history: top-n tradable names, equal weight, kept until
-    they fall below `exit_rank`, rebalanced every h sessions; excess return over the benchmark."""
+    they fall below `exit_rank`, at most `max_per_sector` from one statistical sector,
+    rebalanced every h sessions; excess return over the benchmark. Selection is the live
+    portfolio's own function (`live.portfolio.select_holdings`)."""
     from ..config import section
+    from ..live.portfolio import select_holdings
     pcfg = section("portfolio")
     n = int(n or pcfg["holdings"])
     exit_rank = int(exit_rank or pcfg["exitRank"])
-    d = df[df["tradable"].astype(bool)][["date", "ticker", pred, f"fwd_{h}", f"bench_{h}", "liq_rank"]].dropna(subset=[pred, f"fwd_{h}"])
+    cap = pcfg.get("maxPerSector") if max_per_sector == "config" else max_per_sector
+    cols = ["date", "ticker", pred, f"fwd_{h}", f"bench_{h}", "liq_rank"] + (["sector"] if "sector" in df.columns else [])
+    d = df[df["tradable"].astype(bool)][cols].dropna(subset=[pred, f"fwd_{h}"])
     reb = _rebalance_dates(d["date"].to_numpy(), h)
     rows, prev = [], {}
     for date, day in d[d["date"].isin(reb)].groupby("date"):
         if len(day) < n * 3:
             continue
         ranked = day.sort_values(pred, ascending=False).reset_index(drop=True)
-        rank = dict(zip(ranked["ticker"], ranked.index + 1))
-        keep = [t for t in prev if rank.get(t, 10**9) <= exit_rank]
-        fill = [t for t in ranked["ticker"] if t not in set(keep)][: max(0, n - len(keep))]
-        names = (sorted(keep, key=lambda t: rank[t]) + fill)[:n]
+        sector = dict(zip(ranked["ticker"], ranked["sector"])) if "sector" in ranked.columns else {}
+        names = select_holdings(list(ranked["ticker"]), list(prev), n, exit_rank, sector, cap)
         top = ranked.set_index("ticker").loc[names].reset_index()
         w = dict.fromkeys(names, 1.0 / n)
         traded = sum(abs(w.get(t, 0) - prev.get(t, 0)) for t in set(w) | set(prev))
