@@ -218,7 +218,7 @@
       <p class="small muted">Frozen ${esc(dateFmt(f.decidedAt))} at ${esc(new Date(f.decidedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }))} ET using data through ${esc(dateFmt(f.session))}. File <a href="https://github.com/PrototypeVersions/UnpricedX/blob/main/${esc(f.file)}">${esc(f.file.split("/").pop())}</a>, SHA-256 ${esc(f.sha256.slice(0, 16))}…</p>
       <div class="note"><p>A rank says which stocks the model expects to do better <em>than the others</em>, not whether any will go up. Most of the time the honest answer is "only slightly": the probabilities below are calibrated on years the model never trained on, and they rarely stray far from 50%.</p></div>
       <div class="controls">
-        <input type="search" id="fc-search" placeholder="Find a ticker" aria-label="Find a ticker">
+        <input type="search" id="fc-search" placeholder="Find a ticker or company" aria-label="Find a ticker or company">
         <button class="toggle" data-v="top" aria-pressed="true">Top 50</button>
         <button class="toggle" data-v="bottom" aria-pressed="false">Bottom 50</button>
         <button class="toggle" data-v="all" aria-pressed="false">All ${rows.length}</button>
@@ -231,6 +231,7 @@
     const cols = [
       { h: "Rank", k: "rank", f: (r) => r.rank },
       { h: "Ticker", k: "ticker", l: true, f: (r) => `<span class="ticker">${esc(r.ticker)}</span>` },
+      { h: "Company", k: "name", l: true, f: (r) => `<span class="small">${esc(r.name || "")}</span>` },
       { h: "Percentile", k: "pct", f: (r) => `<span class="meter"><b style="left:0;width:${(r.pct * 100).toFixed(0)}%"></b></span> ${pct(r.pct, 0)}` },
       ...(hasProb ? [
         { h: "Chance of beating the median", k: "prob", f: (r) => pct(r.prob, 1), title: "Calibrated on out-of-sample history" },
@@ -242,7 +243,7 @@
     const render = () => {
       const q = $("#fc-search").value.trim().toUpperCase();
       const trad = $("#fc-trad").checked;
-      let rs = rows.filter((r) => (!trad || r.tradable) && (!q || r.ticker.includes(q)));
+      let rs = rows.filter((r) => (!trad || r.tradable) && (!q || r.ticker.includes(q) || (r.name || "").toUpperCase().includes(q)));
       if (!q) rs = mode === "top" ? rs.slice(0, 50) : mode === "bottom" ? rs.slice(-50).reverse() : rs;
       $("#fc-table").innerHTML = rs.length ? table(cols, rs, { id: "fc-t" }) : `<p class="empty">No ticker matches "${esc(q)}" in today's universe.</p>`;
       makeSortable($("#fc-t"), cols, rs, (sorted) => { $("#fc-table").innerHTML = table(cols, sorted, { id: "fc-t" }); });
@@ -344,6 +345,7 @@
       <h2>Holdings</h2>
       ${p.positions.length ? table([
         { h: "Ticker", k: "ticker", l: true, f: (r) => `<span class="ticker">${esc(r.ticker)}</span>` },
+        { h: "Company", k: "name", l: true, f: (r) => `<span class="small">${esc(r.name || "")}</span>` },
         { h: "Value", k: "value", f: (r) => money(r.value) },
         { h: "Weight", k: "weight", f: (r) => pct(r.weight) },
         { h: "Since", k: "since", f: (r) => esc(dateFmt(r.since)) },

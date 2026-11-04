@@ -1,6 +1,8 @@
 """Builds the JSON files the static Unpriced site reads (site/data/*.json)."""
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pandas as pd
 
@@ -91,15 +93,29 @@ def lab_json() -> dict:
     }
 
 
+_SUFFIX = re.compile(r"(?i)\s*[-,]?\s*(class [a-z] )?(common stock|ordinary shares?|american depositary shares?.*|"
+                     r"depositary shares?.*|shares of beneficial interest|capital stock).*$")
+
+
+def company_names() -> dict:
+    c = store.read_or_empty("candidates")
+    if c.empty:
+        return {}
+    names = c.set_index("ticker")["name"].astype(str)
+    return {t: _SUFFIX.sub("", n.split(" - ")[0]).strip().rstrip(",") for t, n in names.items()}
+
+
 def forecasts_json(reg: dict) -> dict:
     links = snapshot.chain()
     if not links:
         return {"status": "pre-live"}
     snap = snapshot.load(pd.Timestamp(links[-1]["session"]))
     champ = snap.get("champion")
+    names = company_names()
     models = {}
     for mid, m in snap["models"].items():
         df = pd.DataFrame({"ticker": snap["universe"], "score": m["score"], "tradable": snap["tradable"]})
+        df["name"] = df["ticker"].map(names).fillna("")
         if m.get("probBeatMedian"):
             df["prob"] = m["probBeatMedian"]
             df["excess"] = m["expectedExcess"]
@@ -145,7 +161,8 @@ def portfolio_json() -> dict:
     eq = st.get("equity", st["startingCash"])
     curve = st.get("curve", [])
     spy = next((c["spy"] for c in reversed(curve) if c.get("spy")), None)
-    pos = [{"ticker": t, "value": _round(p.get("lastValue", p["dollars"]), 2), "weight": _round(p.get("lastValue", p["dollars"]) / eq, 4),
+    names = company_names()
+    pos = [{"ticker": t, "name": names.get(t, ""), "value": _round(p.get("lastValue", p["dollars"]), 2), "weight": _round(p.get("lastValue", p["dollars"]) / eq, 4),
             "since": p["entrySession"], "return": _round(p.get("lastValue", p["dollars"]) / p["dollars"] - 1, 4)} for t, p in st["positions"].items()]
     pos.sort(key=lambda r: -(r["value"] or 0))
     return {"status": "live" if st.get("startSession") else "awaiting-first-fill", "equity": _round(eq, 2), "cash": _round(st["cash"], 2),

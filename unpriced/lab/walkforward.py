@@ -74,6 +74,9 @@ def training_dates(idx: PanelIndex, before: pd.Timestamp, h: int, stride: int) -
     return dates[cand]
 
 
+FIT_CACHE: dict = {}   # member fits reused within one process (e.g. a sweep), keyed by spec and training window
+
+
 def walk_forward(idx: PanelIndex, spec: dict, era: str, refit: int | None = None, stride: int | None = None,
                  keep_fits: bool = False) -> tuple[pd.DataFrame, list[dict], list[Fitted]]:
     cfg = section("lab")
@@ -83,6 +86,8 @@ def walk_forward(idx: PanelIndex, spec: dict, era: str, refit: int | None = None
     start, end = era_bounds(era, idx, h)
     test_dates = idx.dates[(idx.dates >= np.datetime64(start)) & (idx.dates <= np.datetime64(end))]
     outs, log_rows, fits = [], [], []
+    if len(FIT_CACHE) > 400:
+        FIT_CACHE.clear()
     for b in range(0, len(test_dates), refit):
         block = test_dates[b : b + refit]
         tdates = training_dates(idx, pd.Timestamp(block[0]), h, stride)
@@ -90,7 +95,7 @@ def walk_forward(idx: PanelIndex, spec: dict, era: str, refit: int | None = None
             continue
         t0 = time.time()
         train = idx.rows(tdates)
-        model = fit_model(spec, train)
+        model = fit_model(spec, train, cache=FIT_CACHE)
         test = idx.rows(block)
         pred = model.predict(test)
         keep = ["date", "ticker", "liq_rank", "tradable"] + [c for c in test.columns if c.startswith(("fwd_", "bench_"))]

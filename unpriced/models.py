@@ -96,13 +96,19 @@ class Fitted:
             return pickle.load(fh)
 
 
-def fit(spec: dict, train: pd.DataFrame, seed: int = 0) -> Fitted:
+def fit(spec: dict, train: pd.DataFrame, seed: int = 0, cache: dict | None = None) -> Fitted:
+    """Fit a spec. `cache` (optional) reuses identical member fits on identical training data,
+    so an ensemble evaluated after its members does not refit them."""
     kind = spec["kind"]
     feats = resolve_features(spec)
     if kind == "factor":
         return Fitted(spec, feats)
+    if cache is not None:
+        key = (spec_id(spec), len(train), str(train["date"].min()), str(train["date"].max()))
+        if key in cache:
+            return cache[key]
     if kind == "ensemble":
-        members = [fit(m, train, seed) for m in spec["members"]]
+        members = [fit(m, train, seed, cache) for m in spec["members"]]
         return Fitted(spec, feats, members=members, info={"rows": max(int(x.info.get("rows", 0)) for x in members)})
 
     h = int(spec.get("horizon", 5))
@@ -117,7 +123,10 @@ def fit(spec: dict, train: pd.DataFrame, seed: int = 0) -> Fitted:
         p = {**RIDGE_DEFAULTS, **spec.get("params", {})}
         X = np.nan_to_num(data[avail].to_numpy(dtype="float32"), nan=0.0)
         model = Ridge(alpha=float(p["alpha"])).fit(X, y)
-        return Fitted(spec, avail, model, info={"rows": len(data), "coef": dict(zip(avail, np.round(model.coef_, 5)))})
+        out = Fitted(spec, avail, model, info={"rows": len(data), "coef": dict(zip(avail, np.round(model.coef_, 5)))})
+        if cache is not None:
+            cache[key] = out
+        return out
     if kind == "gbm":
         p = {**GBM_DEFAULTS, **spec.get("params", {})}
         dates = np.sort(data["date"].unique())
@@ -135,8 +144,11 @@ def fit(spec: dict, train: pd.DataFrame, seed: int = 0) -> Fitted:
         )
         model.fit(tr[avail].to_numpy(dtype="float32"), tr[target].to_numpy(dtype="float64"),
                   X_val=va[avail].to_numpy(dtype="float32"), y_val=va[target].to_numpy(dtype="float64"))
-        return Fitted(spec, avail, model, info={"rows": len(tr), "valRows": len(va), "iterations": int(model.n_iter_),
-                                               "minSamplesLeaf": msl})
+        out = Fitted(spec, avail, model, info={"rows": len(tr), "valRows": len(va), "iterations": int(model.n_iter_),
+                                              "minSamplesLeaf": msl})
+        if cache is not None:
+            cache[key] = out
+        return out
     raise ValueError(f"unknown model kind {kind}")
 
 
