@@ -49,7 +49,7 @@ jobs:
         run: python -m unpriced.cli verify --base HEAD
       - name: Save the record
         if: always()
-        run: bash ops/commit.sh "weekly lab: $(date -u +%Y-%m-%dT%H:%MZ)"
+        run: bash ops/commit.sh "weekly lab $(date -u +%Y-%m-%dT%H:%MZ)"
       - name: Save the data store
         if: success()
         run: bash ops/store.sh push

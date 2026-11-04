@@ -57,7 +57,7 @@ jobs:
         run: python -m unpriced.cli verify --base HEAD
       - name: Save the record
         if: always()
-        run: bash ops/commit.sh "daily: $(date -u +%Y-%m-%dT%H:%MZ)"
+        run: bash ops/commit.sh "daily cycle $(date -u +%Y-%m-%dT%H:%MZ)"
       - name: Save the data store
         if: steps.run.outputs.code == '0'
         run: bash ops/store.sh push

@@ -80,7 +80,7 @@ jobs:
           echo "code=$status" >> "$GITHUB_OUTPUT"
           exit 0
       - name: Save the record
-        run: bash ops/commit.sh "ops: $(date -u +%Y-%m-%dT%H:%MZ)"
+        run: bash ops/commit.sh "ops request $(date -u +%Y-%m-%dT%H:%MZ)"
       - name: Save the data store
         if: steps.run.outputs.code == '0'
         run: bash ops/store.sh push
