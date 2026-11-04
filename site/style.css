@@ -38,7 +38,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px;
 }
 .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
-@media (max-width: 640px) { .wrap { padding: 0 16px; } body { font-size: 16px; } }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } body { font-size: 16px; } .masthead { position: static; } .tagline { font-size: 14px; } }
 
 /* masthead */
 .masthead { border-bottom: 1px solid var(--rule); background: var(--paper); position: sticky; top: 0; z-index: 5; }
