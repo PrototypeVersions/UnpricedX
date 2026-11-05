@@ -159,6 +159,24 @@ def cmd_demo(args) -> None:
     print(f"demo written to {tmp}")
 
 
+def cmd_llm_check(args) -> None:
+    """One test reading of a made-up release, to confirm the API key works. Writes nothing to the record."""
+    from types import SimpleNamespace
+    from .config import section
+    from .llm import reader
+    cfg = section("llm")
+    print(json.dumps({"keyPresent": reader.api_key() is not None, "secEmailPresent": bool(__import__("os").environ.get(section("sec")["contactEnvVar"])),
+                      "readerEnabled": reader.enabled(), "model": cfg["model"], "promptVersion": cfg.get("promptVersion")}))
+    if reader.api_key() is None:
+        raise SystemExit("ANTHROPIC_API_KEY is not set for this job")
+    text = ("Example Corp. today reported third-quarter results. Revenue was $1.2 billion, up 8%. "
+            "The company raised its full-year revenue guidance to $4.8 billion from $4.6 billion.")
+    row = SimpleNamespace(ticker="TEST", form="8-K", items="2.02", filing_date="2026-11-05")
+    a = reader.assess(text, row, cfg["model"])
+    print(json.dumps({"ok": True, "guidance": a.get("guidance"), "evidence": a.get("guidance_evidence"),
+                      "rule": reader.rule_guidance(text)[0], "usage": a.get("usage")}))
+
+
 def cmd_power(args) -> None:
     """Expected weeks of live data before a confidence sequence can confirm an IC of a given size."""
     import numpy as np
@@ -192,6 +210,7 @@ def main(argv=None) -> None:
     s.set_defaults(fn=cmd_sweep)
     sub.add_parser("site").set_defaults(fn=cmd_site)
     sub.add_parser("sec").set_defaults(fn=cmd_sec)
+    sub.add_parser("llm-check").set_defaults(fn=cmd_llm_check)
     v = sub.add_parser("verify")
     v.add_argument("--base", default=None)
     v.set_defaults(fn=cmd_verify)
