@@ -47,13 +47,30 @@ def _null_summary() -> dict:
             "recent": rows[-6:]}
 
 
+def _full_years(by_year: dict, start: str | None, end: str | None, min_sessions: int = 60) -> dict:
+    """Drop calendar years with too few out-of-sample sessions to mean anything (e.g. the last
+    few days of the first year), so a two-day average is not drawn as if it were a whole year."""
+    if not start or not end:
+        return by_year
+    s, e = pd.Timestamp(start), pd.Timestamp(end)
+    out = {}
+    for y, v in by_year.items():
+        lo, hi = max(s, pd.Timestamp(f"{y}-01-01")), min(e, pd.Timestamp(f"{y}-12-31"))
+        if hi >= lo and len(pd.bdate_range(lo, hi)) >= min_sessions:
+            out[y] = v
+    return out
+
+
 def lab_json() -> dict:
     ent = [e for e in ledger.entries() if e.get("status") == "evaluated"]
-    hold = {e["id"]: e for e in ent if e["era"] == "holdout"}
+    latest: dict = {}
+    for e in ent:                      # one row per experiment: its most recent evaluation in each era
+        latest[(e["id"], e["era"])] = e
+    hold = {k[0]: e for k, e in latest.items() if k[1] == "holdout"}
     reg = ledger.registry()
     rows = []
-    for e in ent:
-        if e["era"] != "dev":
+    for (eid, era), e in latest.items():
+        if era != "dev":
             continue
         m, ls, lo = e["metrics"], e["metrics"].get("longShort", {}), e["metrics"].get("longOnly", {})
         h = hold.get(e["id"])
@@ -70,7 +87,8 @@ def lab_json() -> dict:
                                             "lsNet": _round(h["metrics"].get("longShort", {}).get("netAnnual"), 4),
                                             "passed": h["gates"]["passed"]},
             "role": reg["models"].get(e["id"], {}).get("role"),
-            "byYear": m["ic"].get("byYear", {}),
+            "byYear": _full_years(m["ic"].get("byYear", {}), e.get("oosStart"), e.get("oosEnd")),
+            "metricsVersion": m.get("metricsVersion", 1),
         })
     rows.sort(key=lambda r: (r["lsSharpe"] is None, -(r["lsSharpe"] or 0)))
     charts = {}

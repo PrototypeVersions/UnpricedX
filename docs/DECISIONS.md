@@ -105,3 +105,17 @@ Prompted by the second real-data sweep and by GPT's cross-review of the design.
 - **Scope:** no model, feature, holdout, gate, or promotion-policy changes. No historical forecast,
   experiment, score, initial order, or registered result is rewritten. Regression tests cover late
   starts, crossing the deadline during computation, holiday/DST calendars, and stale public files.
+
+## 2026-11-05: duplicate challenger; site wording
+- **Bug.** Two live challengers, `gbm_all` and `gbm_all_h21-h5`, are the same fitted model: the
+  neighbour tweak "h5" turned the 21-day variant back into `gbm_all` (same spec hash `d90c9d52`). The
+  one-slot-per-model check only looked at models re-scored under the current accounting, and
+  `gbm_all_h21-h5` never was, so it kept a slot. The check now identifies every live model from its
+  spec, and the next registry update retires the duplicate. Its frozen forecasts stay in the record
+  as they are; they are identical in substance to `gbm_all`'s, so no comparison was affected.
+- **Lab page.** It listed every past evaluation of a model (91 rows for 66 ideas); it now shows each
+  experiment's latest evaluation. Years with fewer than 60 out-of-sample sessions are no longer drawn
+  in the by-year chart (the champion's "2007" bar was two December days).
+- **Wording.** The site now says what it does in plain language ("Can it pick stocks better than
+  chance?"), describes the evening timing introduced on 2026-11-05, names models by what they are,
+  and links to UnpricedHub. No rule, gate or record changed.

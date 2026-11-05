@@ -47,3 +47,33 @@ def test_ic_bar_rises_with_trials():
     from unpriced.lab.runner import ic_threshold
     assert ic_threshold(5) == 3.0
     assert ic_threshold(1000) > ic_threshold(100) > 3.0
+
+
+def test_registry_retires_a_duplicate_challenger_without_current_evidence(tmp_path, monkeypatch):
+    import json
+    from unpriced.lab import ledger, runner
+    from unpriced.lab.metrics import METRICS_VERSION
+    from unpriced.lab.specs import initial_specs
+    from unpriced.models import effective_signature
+
+    monkeypatch.setenv("UNPRICED_ROOT", str(tmp_path))
+    (tmp_path / "lab").mkdir()
+    data_sig = "liquidity,momentum,reversal,risk"
+    spec = {**next(s for s in initial_specs() if s["name"] == "gbm_all")}
+    champ = {**next(s for s in initial_specs() if s["name"] == "ens_all")}
+    entry = {"id": "gbm_all-a", "name": "gbm_all", "era": "dev", "status": "evaluated", "reason": "pre-registered",
+             "spec": spec, "dataSig": data_sig, "effSig": effective_signature(spec, data_sig),
+             "metrics": {"metricsVersion": METRICS_VERSION, "ic": {"tNW": 2.5}, "longShort": {"sharpeNet": 0.1}},
+             "gates": {"passed": False}, "calibration": None}
+    (tmp_path / "lab" / "ledger.jsonl").write_text(json.dumps(entry) + "\n")
+    reg = {"champion": "ens_all-c", "championStatus": "provisional", "history": [], "models": {
+        "ens_all-c": {"spec": champ, "role": "champion"},
+        "gbm_all-a": {"spec": spec, "role": "challenger"},
+        # an older entry whose tweak recreated gbm_all exactly (same fitted model), never re-scored
+        "gbm_all_h21-h5-a": {"spec": {**spec, "name": "gbm_all_h21-h5"}, "role": "challenger"},
+    }}
+    ledger.save_registry(reg)
+    out = runner.update_registry(data_sig)
+    assert out["models"]["gbm_all-a"]["role"] == "challenger"
+    assert out["models"]["gbm_all_h21-h5-a"]["role"] == "retired"
+    assert out["champion"] == "ens_all-c"

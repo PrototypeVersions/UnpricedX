@@ -34,8 +34,11 @@
     return out;
   }
 
+  // On a phone a wide chart would shrink its labels to a few pixels, so draw it narrower instead.
+  const narrow = () => window.innerWidth < 640;
+
   function lineChart({ series = [], band = null, zero = true, height = 260, width = 1060, yFmt = (v) => v.toFixed(2), label = "", clip = null }) {
-    const W = width, H = height, L = 56, R = 12, T = 12, B = 28;
+    const W = narrow() ? Math.min(width, 400) : width, H = narrow() ? Math.min(height, 240) : height, L = 56, R = 12, T = 12, B = 28;
     const all = [];
     series.forEach((s) => s.y.forEach((v) => isNum(v) && all.push(v)));
     if (band) [...band.lower, ...band.upper].forEach((v) => isNum(v) && all.push(v));
@@ -79,7 +82,7 @@
 
   function barChart(entries, { height = 180, yFmt = (v) => v.toFixed(3), label = "" } = {}) {
     if (!entries.length) return `<p class="empty">No data.</p>`;
-    const W = 1060, H = height, L = 56, R = 8, T = 10, B = 26;
+    const W = narrow() ? 400 : 1060, H = height, L = 56, R = 8, T = 10, B = 26;
     const vals = entries.map((e) => e[1]);
     let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
     if (lo === hi) hi = lo + 1;
@@ -124,9 +127,41 @@
 
   /* ---------------------------------------------------------------- helpers over data */
   const champId = () => D.status?.champion?.id;
-  const modelName = (id) => D.lab?.experiments?.find((e) => e.id === id)?.name || D.live?.models?.[id]?.name || id;
+  const codeName = (id) => D.lab?.experiments?.find((e) => e.id === id)?.name || D.live?.models?.[id]?.name
+    || (D.status?.challengers || []).find((c) => c.id === id)?.name || (id === champId() ? D.status?.champion?.name : null) || id;
+  // "gbm_all_h21~no_momentum" -> "Tree model, all signals, 21-day horizon, without momentum"
+  function friendly(name) {
+    if (!name) return "–";
+    const parts = String(name).split(/~|-(?=[a-z])/);
+    const root = parts[0].split("_");
+    if (root[0] === "factor") return `Single signal: ${root.slice(1).join("_")}`;
+    const kind = { ens: "Blend of models", gbm: "Tree model", ridge: "Linear model" }[root[0]] || root[0];
+    const bits = [kind];
+    let horizon = null;
+    root.slice(1).forEach((t) => {
+      const h = t.match(/^h(\d+)$/);
+      if (h) horizon = Number(h[1]);
+      else bits.push({ all: "all signals", price: "price signals only" }[t] || t);
+    });
+    const extra = [];
+    parts.slice(1).forEach((m) => {
+      const h = m.match(/^h(\d+)$/);
+      if (h) horizon = Number(h[1]);
+      else if (m.startsWith("no_")) extra.push(`without ${m.slice(3).replace(/_/g, " ")}`);
+      else extra.push(m.replace(/_/g, " "));
+    });
+    if (horizon && horizon !== 5) bits.push(`${horizon}-day horizon`);
+    return [...bits, ...extra].join(", ");
+  }
+  const modelName = (id) => friendly(codeName(id));
   const roleText = (r) => ({ champion: "Champion", challenger: "Challenger", retired: "Retired", overlay: "Overlay" }[r] || "–");
-  const statusText = (s) => ({ gated: "earned through the lab's gates", provisional: "provisional: no model has passed every gate yet", "promoted-live": "promoted on live evidence" }[s] || s || "");
+  const statusText = (s) => ({ gated: "Passed every test in the lab", provisional: "Default picked in advance; none has passed every test yet", "promoted-live": "Promoted on its live record" }[s] || s || "");
+  const HUB = "https://prototypeversions.github.io/UnpricedHub/";
+  const MIN_WEEKS = 26;
+  function weeksMeter(n) {
+    const k = Math.max(0, Math.min(MIN_WEEKS, n || 0));
+    return `<div class="weeks" role="img" aria-label="${k} of ${MIN_WEEKS} weekly checks">${Array.from({ length: MIN_WEEKS }, (_, i) => `<span class="${i < k ? "on" : ""}"></span>`).join("")}</div>`;
+  }
 
   /* ---------------------------------------------------------------- views */
   function viewOverview() {
@@ -135,8 +170,10 @@
     const seq = D.live?.sequential || {};
     const champ = champId();
     const sk = seq.skill?.[champ];
-    const minBlocks = 26;
+    const minBlocks = MIN_WEEKS;
     let verdict, explain, chart;
+    const waiting = `<div class="waiting"><p class="waiting-count"><strong>${sk?.n ?? 0}</strong> of the ${MIN_WEEKS} weekly checks needed for a verdict</p>${weeksMeter(sk?.n)}
+      <p class="small muted">Each forecast is graded once its five trading days are over, so the first check comes about a week after the first forecast. The effect being looked for is small, which is why a verdict takes about six months of checks.</p></div>`;
     if (!st.snapshots) {
       verdict = st.champion?.id ? "The live record starts at the next open." : "The lab is still being set up.";
       explain = st.champion?.id
@@ -147,37 +184,39 @@
       chart = s ? lineChart({ series: [{ x: s.dates, y: s.values }], width: 640, yFmt: (v) => v.toFixed(1), label: "Cumulative daily rank correlation on history" })
         + `<p class="legend small">Cumulative daily rank correlation between forecasts and next-week returns, ${c?.holdout ? "sealed holdout years" : "development years"}. Rising means the ranking was right more often than not.</p>` : "";
     } else if (!sk || !sk.n) {
-      verdict = "Not shown yet.";
-      explain = "Forecasts are frozen every morning, but none has reached its five-session horizon. Weekly checks start once they do.";
-      chart = "";
+      verdict = "Not proven yet.";
+      explain = `${st.snapshots} forecast${st.snapshots === 1 ? " has" : "s have"} been locked in so far, but none has finished its five trading days, so nothing has been graded yet.`;
+      chart = waiting;
     } else {
       const shown = sk.verdict === "positive skill" && sk.n >= minBlocks;
-      verdict = shown ? "Yes, so far." : sk.verdict === "negative skill" ? "No. It is doing worse than chance." : "Not shown yet.";
+      verdict = shown ? "Yes, so far." : sk.verdict === "negative skill" ? "No. So far it does worse than chance." : "Not proven yet.";
       const wide = sk.upper - sk.lower > 0.5;
       explain = (wide
-        ? `After ${sk.n} weekly check${sk.n === 1 ? "" : "s"} the evidence is still far too thin: the 95% band for the champion's average rank correlation covers almost every possible value. `
-        : `After ${sk.n} weekly checks, the champion's average rank correlation with next-week returns is between ${snum(sk.lower)} and ${snum(sk.upper)} with 95% confidence. `)
-        + `The band stays valid no matter when you look, so checking often cannot fool it. An edge counts as shown once the whole band sits above zero${shown ? "" : ` after at least ${minBlocks} weeks`}.`;
+        ? `After ${sk.n} weekly check${sk.n === 1 ? "" : "s"} there is far too little evidence to say: the range of plausible values still covers almost everything. `
+        : `After ${sk.n} weekly checks, the model's ranking skill is between ${snum(sk.lower)} and ${snum(sk.upper)} (95% confidence; 0 means no better than chance). `)
+        + `It counts as proven once that whole range is above zero${shown ? "" : ` after at least ${minBlocks} weeks`}. The range is built so that checking it every week cannot fool it.`;
       const p = sk.path || {};
-      chart = lineChart({ series: [{ x: sk.sessions, y: p.mean }], band: { x: sk.sessions, lower: p.lower, upper: p.upper }, width: 640, clip: [-0.25, 0.25], yFmt: (v) => v.toFixed(2), label: "Live mean rank correlation with confidence band" })
-        + `<p class="legend"><span><i style="background:var(--band)"></i>running mean</span><span><i style="background:var(--band-fill);height:10px"></i>95% band, valid at any stopping time</span></p>`;
+      chart = lineChart({ series: [{ x: sk.sessions, y: p.mean }], band: { x: sk.sessions, lower: p.lower, upper: p.upper }, width: 640, clip: [-0.25, 0.25], yFmt: (v) => v.toFixed(2), label: "Live ranking skill with its 95% range" })
+        + `<p class="legend"><span><i style="background:var(--band)"></i>average ranking skill so far</span><span><i style="background:var(--band-fill);height:10px"></i>95% range</span></p>`
+        + (sk.n < minBlocks ? `<div class="waiting">${weeksMeter(sk.n)}<p class="small muted">${sk.n} of the ${minBlocks} weekly checks needed for a verdict.</p></div>` : "");
     }
     const src = st.sources || {};
     const ch = st.challengers || [];
     el.innerHTML = `
-      <h1>Is there an edge yet?</h1>
-      <p class="lede">Every trading morning Unpriced ranks about a thousand US stocks for the coming week, freezes that ranking before the open, and later checks it against what happened.</p>
+      <h1>Can it pick stocks better than chance?</h1>
+      <p class="lede">After every trading day, Unpriced ranks about a thousand US stocks by how it expects them to do over the next five trading days. It locks that ranking in before the next open and later grades it against what actually happened.</p>
       <div class="evidence">
         <div>
           <p class="verdict">${esc(verdict)}</p>
           <p>${esc(explain)}</p>
           <dl class="facts">
-            <dt>Champion</dt><dd>${esc(st.champion?.name || "none yet")}</dd>
-            <dt>Status</dt><dd>${esc(statusText(st.champion?.status) || "–")}</dd>
-            <dt>Challengers</dt><dd>${ch.length}</dd>
-            <dt>Frozen forecasts</dt><dd>${st.snapshots ?? 0}</dd>
-            <dt>Ideas tested in the lab</dt><dd>${st.trials ?? 0}</dd>
-            <dt>Last session processed</dt><dd>${esc(dateFmt(st.lastSession))}</dd>
+            <dt>Model in charge</dt><dd>${esc(st.champion?.name ? friendly(st.champion.name) : "none yet")}</dd>
+            <dt>How it was chosen</dt><dd>${esc(statusText(st.champion?.status) || "–")}</dd>
+            <dt>Models tested alongside it</dt><dd>${ch.length}</dd>
+            <dt>Forecasts locked in</dt><dd>${st.snapshots ?? 0}</dd>
+            <dt>Ideas tried in the lab</dt><dd>${st.trials ?? 0}</dd>
+            <dt>Latest trading day</dt><dd>${esc(dateFmt(st.lastSession))}</dd>
+            <dt>Independent check</dt><dd><a href="${HUB}">UnpricedHub</a> keeps and grades its own copy</dd>
           </dl>
         </div>
         <div>${chart || ""}</div>
@@ -187,16 +226,16 @@
         <div>
           <h2>What it does each day</h2>
           <ol class="steps">
-            <li>Before the open, it downloads the previous session's prices${src.sec ? ", new SEC filings and fundamentals" : ""}${src.llm ? ", and has Claude read the new filings" : ""}.</li>
-            <li>Every live model scores every stock. The scores are written to a file whose fingerprint is chained to the day before, so the past cannot be quietly edited.</li>
-            <li>The $1,000 paper portfolio places its orders for the next open, using only that frozen file.</li>
-            <li>Older forecasts whose horizon has passed are scored, and the confidence bands above are updated.</li>
+            <li>After the market closes, it downloads the day's prices${src.sec ? " and new SEC filings" : ""}${src.llm ? ", and has Claude read the new filings" : ""}.</li>
+            <li>Every live model scores every stock. The scores go into a file whose fingerprint is chained to the previous day's, so the past cannot be quietly edited.</li>
+            <li>The $1,000 paper portfolio places its orders for the next open, using only that locked file.</li>
+            <li>Forecasts whose five trading days are over are graded, and the results above are updated.</li>
           </ol>
         </div>
         <div>
           <h2>How it learns</h2>
           <p>Every Saturday the lab retrains the live models on newer data and tests new ideas on twenty years of history. Each idea tried raises the bar for the next one, so a lucky find cannot sneak through.</p>
-          <p>Ideas that pass are shadowed live as challengers. A challenger replaces the champion only when its live record beats the champion's by more than chance allows.</p>
+          <p>Promising ideas run live alongside the model in charge as challengers. A challenger takes over only when its live record beats the current model's by more than chance allows.</p>
           <p class="small muted">Data: Yahoo prices${src.sec ? ", SEC EDGAR filings" : " (SEC filings switch on once a contact email is configured)"}${src.llm ? ", Claude filing reader" : " (AI filing reader switches on once an API key is configured)"}.</p>
         </div>
       </div>`;
@@ -214,8 +253,8 @@
     const hasProb = rows.some((r) => isNum(r.prob));
     el.innerHTML = `
       <h1>Today's forecasts</h1>
-      <p class="lede">Ranked by the champion for the ${m.horizon} sessions starting at the ${esc(dateFmt(f.entrySession))} open.</p>
-      <p class="small muted">Frozen ${esc(dateFmt(f.decidedAt))} at ${esc(new Date(f.decidedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }))} ET using data through ${esc(dateFmt(f.session))}. File <a href="https://github.com/PrototypeVersions/UnpricedX/blob/main/${esc(f.file)}">${esc(f.file.split("/").pop())}</a>, SHA-256 ${esc(f.sha256.slice(0, 16))}…</p>
+      <p class="lede">The current model's ranking for the ${m.horizon} trading days starting at the ${esc(dateFmt(f.entrySession))} open.</p>
+      <p class="small muted">Locked in ${esc(dateFmt(f.decidedAt))} at ${esc(new Date(f.decidedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }))} ET using data through ${esc(dateFmt(f.session))}. File <a href="https://github.com/PrototypeVersions/UnpricedX/blob/main/${esc(f.file)}">${esc(f.file.split("/").pop())}</a>, SHA-256 ${esc(f.sha256.slice(0, 16))}…</p>
       <div class="note"><p>A rank says which stocks the model expects to do better <em>than the others</em>, not whether any will go up. Most of the time the honest answer is "only slightly": the probabilities below are calibrated on years the model never trained on, and they rarely stray far from 50%.</p></div>
       <div class="controls">
         <input type="search" id="fc-search" placeholder="Find a ticker or company" aria-label="Find a ticker or company">
@@ -226,7 +265,7 @@
       </div>
       <div id="fc-table"></div>
       <h2>Challengers' top picks</h2>
-      <p class="muted">Each challenger publishes the same kind of forecast. Their picks are scored exactly like the champion's.</p>
+      <p class="muted">The models being tested alongside the current one make the same kind of forecast, and they are graded exactly the same way.</p>
       <div id="fc-ch"></div>`;
     const cols = [
       { h: "Rank", k: "rank", f: (r) => r.rank },
@@ -271,11 +310,12 @@
     const chain = lv.chain || {};
     const champ = champId();
     let html = `<h1>Live record</h1>
-      <p class="lede">Only forecasts frozen before the open count here. Backtests never enter this page.</p>
-      <dl class="kv"><dt>Frozen snapshots</dt><dd>${lv.snapshots ?? 0}</dd>
-      <dt>Fingerprint chain</dt><dd>${chain.links ? (chain.ok ? `<span class="pos">intact across ${chain.links} days</span>` : `<span class="neg">broken: ${esc((chain.problems || []).join("; "))}</span>`) : "no snapshots yet"}</dd></dl>`;
+      <p class="lede">Only forecasts locked in before the open count here. Results on past data never appear on this page.</p>
+      <dl class="kv"><dt>Forecasts locked in</dt><dd>${lv.snapshots ?? 0}</dd>
+      <dt>Fingerprint chain</dt><dd>${chain.links ? (chain.ok ? `<span class="pos">intact across ${chain.links} days</span>` : `<span class="neg">broken: ${esc((chain.problems || []).join("; "))}</span>`) : "no snapshots yet"}</dd>
+      <dt>Independent check</dt><dd><a href="${HUB}">UnpricedHub</a> records when it received each forecast and grades it from its own price data</dd></dl>`;
     if (!models.length) {
-      el.innerHTML = html + `<p class="empty">No forecast has matured yet. One-day forecasts are scored the morning after their first full session, five-day forecasts a week later.</p>`;
+      el.innerHTML = html + `<p class="empty">Nothing has been graded yet. Each forecast is graded once its five trading days are over, so results start about a week after the first forecast.</p>`;
       return;
     }
     const rows = models.map(([id, m]) => ({ id, name: m.name, role: id === champ ? "champion" : m.role, ...(m.horizons) }));
@@ -322,16 +362,27 @@
     const el = $("#portfolio");
     const p = D.portfolio || {};
     const rules = p.rules || {};
-    const rulesText = `Long only, ${rules.holdings ?? 10} equal-weight positions from the 500 most liquid stocks, chosen by the champion's ranking. A holding is kept until it drops below rank ${rules.exitRank ?? 40}.${rules.maxPerSector ? ` At most ${rules.maxPerSector} come from one sector (a group of about ${rules.sectorSize ?? 50} stocks whose prices have moved together over the past year), so one theme can't fill the portfolio.` : ""} Rebalanced every ${rules.rebalanceEverySessions ?? 5} sessions at the first open after the forecast is frozen, with trading costs of ${rules.baseCostBps ?? 2} bps plus a spread estimate per side.`;
+    const lede = "What would happen to $1,000 that buys the model's top-ranked stocks each week. It's paper money, with realistic trading costs.";
+    const rulesList = `<h2>Rules</h2><ul class="steps">
+      <li>Buys ${rules.holdings ?? 10} stocks in equal amounts, chosen from the 500 most traded by the current model's ranking. It never bets on prices falling.</li>
+      <li>Rebalances every ${rules.rebalanceEverySessions ?? 5} trading days, at the first open after that day's forecast is locked in.</li>
+      <li>Keeps a stock until it falls out of the top ${rules.exitRank ?? 40}, so it doesn't trade on small changes.</li>
+      ${rules.maxPerSector ? `<li>Holds at most ${rules.maxPerSector} stocks from one sector (a group of about ${rules.sectorSize ?? 50} stocks whose prices have moved together over the past year), so one theme can't fill it.</li>` : ""}
+      <li>Pays ${rules.baseCostBps ?? 2} hundredths of a percent per trade, plus more for less-traded stocks.</li></ul>`;
     if (!p.status || p.status === "pre-live" || !p.curve?.length) {
-      el.innerHTML = `<h1>$1,000 portfolio</h1><p class="lede">${esc(rulesText)}</p><p class="empty">${p.pending ? `First orders are queued for the ${esc(dateFmt(p.pending.executeSession))} open.` : "The portfolio starts with the first frozen forecast."}</p>`;
+      el.innerHTML = `<h1>$1,000 portfolio</h1><p class="lede">${esc(lede)}</p><p class="empty">${p.pending ? `First orders are queued for the ${esc(dateFmt(p.pending.executeSession))} open.` : "The portfolio starts with the first locked-in forecast."}</p>${rulesList}`;
       return;
     }
-    const curve = p.curve;
+    // SPY is bought at the first fill; before that point both lines stand at the starting cash
+    let started = false;
+    const curve = p.curve.map((c) => {
+      if (isNum(c.spy)) started = true;
+      return started || !isNum(p.startingCash ?? 1000) ? c : { ...c, spy: p.startingCash ?? 1000 };
+    });
     const spyOk = curve.some((c) => isNum(c.spy));
     el.innerHTML = `
       <h1>$1,000 portfolio</h1>
-      <p class="lede">${esc(rulesText)}</p>
+      <p class="lede">${esc(lede)}</p>
       <dl class="kv">
         <dt>Value</dt><dd><strong>${money(p.equity)}</strong> <span class="${cls(p.return)}">(${spct(p.return)})</span></dd>
         <dt>Same $1,000 in SPY</dt><dd>${money(p.spyValue)} <span class="${cls(p.spyReturn)}">(${spct(p.spyReturn)})</span></dd>
@@ -341,7 +392,7 @@
       </dl>
       ${lineChart({ series: [{ x: curve.map((c) => c.session), y: curve.map((c) => c.equity) }, ...(spyOk ? [{ x: curve.map((c) => c.session), y: curve.map((c) => c.spy), cls: "alt" }] : [])], zero: false, yFmt: (v) => `$${v.toFixed(0)}`, label: "Portfolio value versus SPY" })}
       <p class="legend"><span><i style="background:var(--band)"></i>Portfolio</span><span><i style="background:var(--muted)"></i>SPY</span></p>
-      <div class="note"><p>The portfolio is a separate experiment from the forecasts. A few weeks of profit or loss says almost nothing about skill; the live record does.</p></div>
+      <div class="note"><p>A few weeks of profit or loss says almost nothing about skill, in either direction. The graded forecasts on the Live record page are the real test.</p></div>
       <h2>Holdings</h2>
       ${p.positions.length ? table([
         { h: "Ticker", k: "ticker", l: true, f: (r) => `<span class="ticker">${esc(r.ticker)}</span>` },
@@ -359,7 +410,8 @@
         { h: "Side", k: "side", f: (r) => (r.side === "BUY" ? "Buy" : "Sell") },
         { h: "Amount", k: "dollars", f: (r) => money(r.dollars) },
         { h: "Cost", k: "costDollars", f: (r) => money(r.costDollars) },
-      ], p.trades, { sortable: false }) : `<p class="empty">No trades yet.</p>`}`;
+      ], p.trades, { sortable: false }) : `<p class="empty">No trades yet.</p>`}
+      ${rulesList}`;
   }
 
   function viewLab() {
@@ -380,14 +432,22 @@
       <div class="note"><p>To pass, an idea must show a rank-correlation t-statistic above a bar that rises with every idea tried (now ${num(lab.icBarNow ?? 3, 2)}), make money after trading costs with 95% confidence, and then repeat on the sealed holdout years. History here comes from free data that only includes companies still listed today, which flatters some strategies.</p></div>`;
     const charts = lab.charts || {};
     const ids = Object.keys(charts);
+    const cr = ex.find((e) => e.id === champ);
+    if (cr && isNum(cr.lsNet)) {
+      const ho = cr.holdout;
+      html += `<h2>What history says about the current model</h2><p>On ${esc(lab.eras?.trainStart?.slice(0, 4) || "")}–${esc(lab.eras?.devEnd?.slice(0, 4) || "")} data it never trained on, it ranked stocks better than chance in ${pct(cr.yearsPositive, 0)} of years. `
+        + `Turning that into profit is harder: buying the top tenth of stocks and betting against the bottom tenth ${cr.lsNet >= 0 ? "made" : "lost"} about ${pct(Math.abs(cr.lsNet), 1)} a year after trading costs`
+        + (ho && isNum(ho.lsNet) ? `, and ${ho.lsNet >= 0 ? "made" : "lost"} about ${pct(Math.abs(ho.lsNet), 1)} a year from ${esc(lab.eras?.holdoutStart?.slice(0, 4) || "")} on, years kept sealed until the end` : "")
+        + `. That gap between ranking skill and profit after costs is the main open question the live record will answer.</p>`;
+    }
     if (ids.length) {
-      html += `<h2>Live models on history</h2><div class="grid2">`;
+      html += `<h2>How the live models did on past data</h2><div class="grid2">`;
       ids.slice(0, 4).forEach((id) => {
         const c = charts[id];
         const dev = c.dev?.lsNet, ho = c.holdout?.lsNet;
-        html += `<div><h3>${esc(modelName(id))}${id === champ ? " (champion)" : ""}</h3>`;
-        if (dev) html += lineChart({ series: [{ x: dev.dates, y: dev.values }], zero: false, height: 220, width: 520, yFmt: (v) => v.toFixed(2), label: "Growth of $1, long-short after costs, development years" }) + `<p class="small muted">Growth of $1 in the top-minus-bottom decile after costs, development years.</p>`;
-        if (ho) html += lineChart({ series: [{ x: ho.dates, y: ho.values, cls: "pos" }], zero: false, height: 180, width: 520, yFmt: (v) => v.toFixed(2), label: "Holdout years" }) + `<p class="small muted">Same, sealed holdout years.</p>`;
+        html += `<div><h3>${esc(modelName(id))}${id === champ ? " (in charge)" : ""}</h3>`;
+        if (dev) html += lineChart({ series: [{ x: dev.dates, y: dev.values }], zero: false, height: 220, width: 520, yFmt: (v) => `$${v.toFixed(2)}`, label: "Growth of $1, top tenth minus bottom tenth after costs, development years" }) + `<p class="small muted">What $1 became buying the top tenth of stocks and betting against the bottom tenth, after trading costs, in the years used for development.</p>`;
+        if (ho) html += lineChart({ series: [{ x: ho.dates, y: ho.values, cls: "pos" }], zero: false, height: 180, width: 520, yFmt: (v) => `$${v.toFixed(2)}`, label: "Sealed years" }) + `<p class="small muted">The same in the sealed years, which were kept out of development.</p>`;
         html += `</div>`;
       });
       html += `</div>`;
@@ -395,7 +455,7 @@
     const champRow = ex.find((e) => e.id === champ);
     if (champRow?.byYear) {
       const ent = Object.entries(champRow.byYear);
-      html += `<h2>Champion's rank correlation by year</h2>` + barChart(ent, { yFmt: (v) => v.toFixed(3), label: "IC by year" });
+      html += `<h2>The current model's ranking skill, year by year</h2><p class="muted">Average rank correlation between its scores and the following week's returns in each year of development data. Above zero means it ranked stocks better than chance that year.</p>` + barChart(ent, { yFmt: (v) => v.toFixed(3), label: "Ranking skill by year" });
     }
     html += `<h2>Every experiment</h2><p class="muted">Sorted by after-cost Sharpe ratio on development years. Click a column to sort.</p><div class="controls">
       <select id="lab-kind" aria-label="Filter by kind"><option value="">All kinds</option><option>factor</option><option>ridge</option><option>gbm</option><option>ensemble</option></select>
@@ -403,7 +463,7 @@
       <h2>Features</h2><p class="muted">Every input the models can use, each computed only from information available on the day of the forecast.</p><div id="lab-features"></div>`;
     el.innerHTML = html;
     const cols = [
-      { h: "Experiment", k: "name", l: true, f: (r) => `${esc(r.name)}${r.role ? ` <span class="pill">${esc(roleText(r.role))}</span>` : ""}` },
+      { h: "Experiment", k: "name", l: true, f: (r) => `${esc(friendly(r.name))} <span class="small muted">${esc(r.name)}</span>${r.role ? ` <span class="pill">${esc(roleText(r.role))}</span>` : ""}` },
       { h: "Kind", k: "kind", f: (r) => esc(r.kind) },
       { h: "Horizon", k: "horizon", f: (r) => `${r.horizon}d` },
       { h: "IC", k: "icMean", f: (r) => snum(r.icMean, 4), cls: (r) => cls(r.icMean), title: "Mean daily rank correlation, development years" },
@@ -478,6 +538,7 @@
         <li><strong>Frozen, fingerprinted forecasts.</strong> Each morning's forecast file is fingerprinted with SHA-256 and chained to the day before. Changing any past file breaks the chain, and a check runs on every change to the repository.</li>
         <li><strong>Evidence that survives peeking.</strong> Live comparisons use confidence sequences, which stay valid however often they are checked, on non-overlapping weekly blocks. Decisions wait for at least 26 weeks.</li>
         <li><strong>Realistic trading.</strong> Orders fill at the first open after the forecast file exists, with costs that grow for less liquid stocks.</li>
+        <li><strong>An independent record.</strong> A separate scorekeeper, <a href="${HUB}">UnpricedHub</a>, saves its own copy of each forecast with the time it received it, and grades it from its own price data. A forecast it receives after the open never counts as live.</li>
       </ol>
       <h2>Known limitations</h2>
       <ul class="steps">
@@ -486,7 +547,7 @@
         <li>An edge of the size plausible here takes a long time to confirm live: in simulation, a rank correlation of 0.03 needs about a year of weekly checks and 0.02 about two. That is a property of markets, not a flaw to tune away.</li>
       </ul>
       <h2>Schedule</h2>
-      <dl class="kv">${Object.entries(sch).map(([k, v]) => `<dt>${esc({ daily: "Morning cycle", weekly: "Weekly lab", aiHealthCheck: "AI health check", aiResearch: "AI research session", aiReview: "AI monthly review" }[k] || k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+      <dl class="kv">${Object.entries(sch).map(([k, v]) => `<dt>${esc({ daily: "Daily forecast", weekly: "Weekly lab", aiHealthCheck: "AI evening check", aiResearch: "AI research session", aiReview: "AI monthly review" }[k] || k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
       <h2>References</h2>
       <ul class="steps small">
         <li>Bailey &amp; López de Prado (2014), The deflated Sharpe ratio.</li>

@@ -170,11 +170,17 @@ def update_registry(data_sig: str) -> dict:
             reg["champion"], reg["championStatus"] = prov["id"], "provisional"
             reg["history"].append({"at": iso(now_et()), "event": "provisional champion set", "to": prov["id"]})
 
-    # one live slot per distinct fitted model: retire challengers that duplicate the champion or each other
-    seen = {ledger.identity(dev[reg["champion"]])} if reg.get("champion") in dev else set()
+    # one live slot per distinct fitted model: retire challengers that duplicate the champion or each other.
+    # Models without an evaluation under the current accounting are identified from their spec, so an
+    # older duplicate (e.g. a neighbour whose tweak recreated an existing model) cannot keep a slot.
+    def live_identity(k: str, v: dict) -> str:
+        return ledger.identity(dev[k]) if k in dev else effective_signature(v["spec"], data_sig)
+
+    champ = reg.get("champion")
+    seen = {live_identity(champ, reg["models"][champ])} if champ in reg["models"] else set()
     for k, v in reg["models"].items():
-        if v.get("role") == "challenger" and k in dev:
-            ident = ledger.identity(dev[k])
+        if v.get("role") == "challenger":
+            ident = live_identity(k, v)
             if ident in seen:
                 v["role"] = "retired"
                 v["note"] = "retired: same fitted model as another live model on the current data"

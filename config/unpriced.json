@@ -67,9 +67,9 @@
   },
 
   "schedule": {
-    "daily": "ET attempts: Mon-Fri 18:23 and 20:23, Tue-Sat 02:23, daily 06:10, 07:10 and 08:20. Freeze once before the next session's open; missed deadlines fail visibly.",
+    "daily": "After each trading day, attempts at 18:23 and 20:23 ET, then 02:23, 06:10, 07:10 and 08:20 ET if needed. The first that succeeds locks in the forecast before the next open; a missed deadline is recorded, never backfilled.",
     "weekly": "Saturday 09:40 ET: refresh all data, run the research sweep, holdout tests and live refits",
-    "aiHealthCheck": "Tue-Sat 08:50 ET: a Claude session checks the cycle ran and opens a fix PR if something broke",
+    "aiHealthCheck": "Weekdays 19:07 ET: a Claude session makes sure the forecast is locked in and received by UnpricedHub, starts it if a delayed schedule has not, and opens a fix PR if something broke",
     "aiResearch": "Sunday 10:05 ET: a Claude session reviews the lab and live record and proposes new experiments as a PR",
     "aiReview": "1st of each month 11:36 ET: a Claude session writes a methodology and evidence review"
   },

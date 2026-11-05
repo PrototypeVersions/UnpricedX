@@ -80,6 +80,12 @@ p { margin: 0 0 14px; max-width: 72ch; }
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 16px 0 0; font-size: 15px; }
 .facts dt { color: var(--muted); }
 .facts dd { margin: 0; font-weight: 600; }
+.waiting { align-self: center; }
+.waiting-count { font-size: 19px; margin-bottom: 12px; }
+.waiting-count strong { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; margin-right: 6px; vertical-align: -4px; }
+.weeks { display: grid; grid-template-columns: repeat(26, minmax(0, 1fr)); gap: 3px; margin: 0 0 12px; max-width: 520px; }
+.weeks span { height: 18px; border-radius: 3px; background: var(--rule); }
+.weeks span.on { background: var(--band); }
 
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; }
 @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; gap: 8px; } }
