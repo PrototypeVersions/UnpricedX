@@ -1,48 +1,102 @@
 {
   "startingCash": 1000.0,
-  "cash": 1000.0,
-  "positions": {},
-  "pending": {
-    "model": "ens_all-c3743f03",
-    "decidedFrom": "2026-11-03",
-    "decidedAt": "2026-11-03T21:56:18-05:00",
-    "executeSession": "2026-11-04",
-    "targets": [
-      "MU",
-      "AMD",
-      "LRCX",
-      "AMAT",
-      "MRVL",
-      "WDC",
-      "TER",
-      "ASX",
-      "GLW",
-      "ALAB"
-    ],
-    "costBps": {
-      "MU": 6.0,
-      "AMD": 6.0,
-      "LRCX": 6.0,
-      "AMAT": 6.0,
-      "MRVL": 6.0,
-      "WDC": 6.0,
-      "TER": 6.0,
-      "ASX": 10.0,
-      "GLW": 6.0,
-      "ALAB": 6.0
+  "cash": 0.00041,
+  "positions": {
+    "AMAT": {
+      "dollars": 99.936,
+      "anchor": 373.42999267578125,
+      "entrySession": "2026-11-04",
+      "lastValue": 98.857506,
+      "lastPrice": 369.399994
+    },
+    "MRVL": {
+      "dollars": 99.936,
+      "anchor": 165.25999450683594,
+      "entrySession": "2026-11-04",
+      "lastValue": 96.634235,
+      "lastPrice": 159.800003
+    },
+    "ASX": {
+      "dollars": 99.936,
+      "anchor": 38.5,
+      "entrySession": "2026-11-04",
+      "lastValue": 97.366213,
+      "lastPrice": 37.509998
+    },
+    "LRCX": {
+      "dollars": 99.936,
+      "anchor": 227.7899932861328,
+      "entrySession": "2026-11-04",
+      "lastValue": 97.145741,
+      "lastPrice": 221.429993
+    },
+    "ALAB": {
+      "dollars": 99.936,
+      "anchor": 217.97000122070312,
+      "entrySession": "2026-11-04",
+      "lastValue": 102.365972,
+      "lastPrice": 223.270004
+    },
+    "WDC": {
+      "dollars": 99.936,
+      "anchor": 333.3599853515625,
+      "entrySession": "2026-11-04",
+      "lastValue": 97.079059,
+      "lastPrice": 323.829987
+    },
+    "GLW": {
+      "dollars": 99.936,
+      "anchor": 122.27999877929688,
+      "entrySession": "2026-11-04",
+      "lastValue": 97.067374,
+      "lastPrice": 118.769997
+    },
+    "MU": {
+      "dollars": 99.936,
+      "anchor": 823.0,
+      "entrySession": "2026-11-04",
+      "lastValue": 96.563917,
+      "lastPrice": 795.22998
+    },
+    "TER": {
+      "dollars": 99.936,
+      "anchor": 264.739990234375,
+      "entrySession": "2026-11-04",
+      "lastValue": 94.745555,
+      "lastPrice": 250.990005
+    },
+    "AMD": {
+      "dollars": 99.936,
+      "anchor": 485.25,
+      "entrySession": "2026-11-04",
+      "lastValue": 100.662994,
+      "lastPrice": 488.779999
     }
   },
-  "equity": 1000.0,
-  "benchmark": null,
+  "pending": null,
+  "equity": 978.488975,
+  "benchmark": {
+    "symbol": "SPY",
+    "dollars": 1000.0,
+    "anchor": 762.989990234375,
+    "startSession": "2026-11-04",
+    "value": 1005.006628
+  },
   "curve": [
     {
       "session": "2026-11-03",
       "equity": 1000.0,
       "spy": null
+    },
+    {
+      "session": "2026-11-04",
+      "equity": 978.488975,
+      "spy": 1005.006628
     }
   ],
-  "rebalances": 0,
-  "lastRebalanceSession": null,
-  "sessionsSinceRebalance": null,
-  "markedAt": "2026-11-03T21:56:15-05:00"
+  "rebalances": 1,
+  "lastRebalanceSession": "2026-11-04",
+  "sessionsSinceRebalance": 0,
+  "markedAt": "2026-11-05T01:51:35-05:00",
+  "startSession": "2026-11-04"
 }

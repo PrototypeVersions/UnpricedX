@@ -1,0 +1,50 @@
+2026-11-05 06:38:42,167 INFO unpriced.context: context: 347 sessions x 1154 tickers, 13251 earnings events, 103212 fundamental rows
+2026-11-05 06:38:50,609 INFO unpriced.prices: yahoo: 80/1071 tickers requested, 0 failed so far
+2026-11-05 06:40:03,766 INFO unpriced.prices: yahoo: 880/1071 tickers requested, 0 failed so far
+2026-11-05 06:40:23,909 INFO unpriced.prices: adjustment basis changed for 3 tickers; refetching full history
+2026-11-05 06:40:24,262 INFO unpriced.prices: yahoo: 3/3 tickers requested, 0 failed so far
+2026-11-05 06:40:32,412 INFO unpriced.prices: price update: {'requested': 1071, 'new': 0, 'refetched': 3, 'appended': 1068, 'rows': 16681082, 'lastDate': '2026-11-04', 'failedCount': 0}
+2026-11-05 06:40:43,886 INFO unpriced.context: context: 348 sessions x 1154 tickers, 13330 earnings events, 103212 fundamental rows
+2026-11-05 06:40:45,409 INFO unpriced.pipeline: SEC submissions 0/288
+2026-11-05 06:41:11,093 INFO unpriced.pipeline: SEC submissions 200/288
+2026-11-05 06:41:36,177 INFO unpriced.pipeline: SEC company facts 0/177
+2026-11-05 06:51:32,169 INFO unpriced.context: context: 758 sessions x 1368 tickers, 26708 earnings events, 103323 fundamental rows
+{
+  "session": "2026-11-04",
+  "startedAt": "2026-11-05T01:38:29-05:00",
+  "sec": {
+    "enabled": true,
+    "mode": "daily",
+    "indexDays": {
+      "read": [
+        "2026-11-03",
+        "2026-11-04"
+      ],
+      "absent": [],
+      "pending": []
+    },
+    "submissions": 288,
+    "facts": 177,
+    "fundamentalRows": 103323,
+    "at": "2026-11-05T01:51:15-05:00"
+  },
+  "coverage": 1.0,
+  "llm": {
+    "enabled": false
+  },
+  "newScores": 0,
+  "promotion": {
+    "events": []
+  },
+  "snapshot": {
+    "session": "2026-11-04",
+    "file": "live/snapshots/2026/2026-11-04.json.gz",
+    "sha256": "77a330e74e76968b7db5edaa1e462cad256c8010ff286f79074f9ed9c4aab886",
+    "prevHash": "49e1f41bcec71c191c8daf8a3ad10cd34a78b31ce49f9be44191b24c2150a4ed",
+    "decidedAt": "2026-11-05T01:51:35-05:00",
+    "entrySession": "2026-11-05"
+  },
+  "trades": 10,
+  "status": "published"
+}
+exit: 0
