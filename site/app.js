@@ -235,7 +235,7 @@
           <p class="panel-q">Does the leading model rank stocks better than chance?</p>
           <p class="verdict">${esc(verdict)}</p>
           <p>${esc(explain)}</p>
-          <p class="small muted">This grades ranking only. Better rankings do not by themselves mean profitable trades: trading costs can eat a small edge. Profit after costs is tested separately, by the lab and by the $1,000 portfolio.</p>
+          <p class="small muted">This grades ranking only. Better rankings do not by themselves mean profitable trades: trading costs can eat a small edge. Profit after costs is tested separately, by the lab and by the $1,000 stock portfolio.</p>
           <dl class="facts">
             <dt>Model in charge</dt><dd>${esc(st.champion?.name ? friendly(st.champion.name) : "none yet")}</dd>
             <dt>How it was chosen</dt><dd>${esc(statusText(st.champion?.status) || "–")}</dd>
@@ -399,7 +399,7 @@
       ${rules.maxPerSector ? `<li>Holds at most ${rules.maxPerSector} stocks from one sector (a group of about ${rules.sectorSize ?? 50} stocks whose prices have moved together over the past year), so one theme can't fill it.</li>` : ""}
       <li>Pays ${rules.baseCostBps ?? 2} hundredths of a percent per trade, plus more for less-traded stocks.</li></ul>`;
     if (!p.status || p.status === "pre-live" || !p.curve?.length) {
-      el.innerHTML = `<h1>$1,000 portfolio</h1><p class="lede">${esc(lede)}</p><p class="empty">${p.pending ? `First orders are queued for the ${esc(dateFmt(p.pending.executeSession))} open.` : "The portfolio starts with the first locked-in forecast."}</p>${rulesList}`;
+      el.innerHTML = `<h1>$1,000 stock portfolio</h1><p class="lede">${esc(lede)}</p><p class="empty">${p.pending ? `First orders are queued for the ${esc(dateFmt(p.pending.executeSession))} open.` : "The portfolio starts with the first locked-in forecast."}</p>${rulesList}`;
       return;
     }
     // SPY is bought at the first fill; before that point both lines stand at the starting cash
@@ -410,7 +410,7 @@
     });
     const spyOk = curve.some((c) => isNum(c.spy));
     el.innerHTML = `
-      <h1>$1,000 portfolio</h1>
+      <h1>$1,000 stock portfolio</h1>
       <p class="lede">${esc(lede)}</p>
       <dl class="kv">
         <dt>Value</dt><dd><strong>${money(p.equity)}</strong> <span class="${cls(p.return)}">(${spct(p.return)})</span></dd>
