@@ -464,7 +464,7 @@
     const cr = ex.find((e) => e.id === champ);
     if (cr && isNum(cr.lsNet)) {
       const ho = cr.holdout;
-      html += `<h2>What history says about the current model</h2><p>On ${esc(lab.eras?.trainStart?.slice(0, 4) || "")}–${esc(lab.eras?.devEnd?.slice(0, 4) || "")} data it never trained on, it ranked stocks better than chance in ${pct(cr.yearsPositive, 0)} of years. `
+      html += `<h2>What history says about the current model</h2><p>On ${esc((cr.oosStart || lab.eras?.trainStart || "").slice(0, 4))}–${esc(lab.eras?.devEnd?.slice(0, 4) || "")} data it never trained on, it ranked stocks better than chance in ${pct(cr.yearsPositive, 0)} of years. `
         + `Turning that into profit is harder: buying the top tenth of stocks and betting against the bottom tenth ${cr.lsNet >= 0 ? "made" : "lost"} about ${pct(Math.abs(cr.lsNet), 1)} a year after trading costs`
         + (ho && isNum(ho.lsNet) ? `, and ${ho.lsNet >= 0 ? "made" : "lost"} about ${pct(Math.abs(ho.lsNet), 1)} a year from ${esc(lab.eras?.holdoutStart?.slice(0, 4) || "")} on, years kept sealed until the end` : "")
         + `. That gap between ranking skill and profit after costs is the main open question the live record will answer.</p>`;

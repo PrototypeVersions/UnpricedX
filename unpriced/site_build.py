@@ -89,6 +89,7 @@ def lab_json() -> dict:
             "role": reg["models"].get(e["id"], {}).get("role"),
             "byYear": _full_years(m["ic"].get("byYear", {}), e.get("oosStart"), e.get("oosEnd")),
             "metricsVersion": m.get("metricsVersion", 1),
+            "oosStart": e.get("oosStart"), "oosEnd": e.get("oosEnd"),
         })
     rows.sort(key=lambda r: (r["lsSharpe"] is None, -(r["lsSharpe"] or 0)))
     charts = {}
