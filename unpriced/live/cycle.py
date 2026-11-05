@@ -1,12 +1,11 @@
-"""The daily cycle (runs before the US open, processing the previous session).
+"""The daily cycle (after the session's cutoff and before the next US open).
 
     1. find the last completed session t; stop if its snapshot already exists (idempotent)
     2. refresh prices through t; fail closed if t's data is missing or thin
     3. refresh SEC filings/fundamentals (if configured) and run the AI filing reader (if configured)
-    4. fill yesterday's paper orders at t's open, mark the portfolio at t's close
-    5. score matured forecasts and update the live confidence sequences / promotions
-    6. predict with every live model, freeze the snapshot into the hash chain
-    7. decide the next paper orders (executed at the first open after the commit)
+    4. score matured forecasts and update the live confidence sequences / promotions
+    5. predict with every live model, check the deadline again, freeze into the hash chain
+    6. fill existing paper orders at t's open, mark at close, decide next-open orders
 """
 from __future__ import annotations
 
@@ -105,6 +104,7 @@ def run_daily(force: bool = False, skip_data: bool = False, provider=None) -> di
     if snapshot.exists(t) and not force:
         L.info("snapshot for %s already frozen; nothing to do", t.date())
         return {"status": "noop", "session": t.date().isoformat()}
+    snapshot.entry_session(now, t)  # reject a delayed start before fetching data or changing state
     reg = ledger.registry()
     if not reg.get("champion"):
         L.warning("no champion yet: run the research sweep first")
@@ -134,15 +134,7 @@ def run_daily(force: bool = False, skip_data: bool = False, provider=None) -> di
             L.warning("AI filing reader failed: %s", exc)
             report["llm"] = {"error": str(exc)}
 
-    # --- paper portfolio: fill orders decided before this session's open, mark at close
-    st = portfolio.state()
     adj_open = ctx.mats["adj_open"]
-    trades = portfolio.execute(st, adj_open.loc[t], t, adj_open) if t in adj_open.index else []
-    if st.get("lastRebalanceSession") and not trades and st.get("sessionsSinceRebalance") is not None:
-        st["sessionsSinceRebalance"] = int(st["sessionsSinceRebalance"]) + 1
-    portfolio.mark(st, t, ctx.mats["adj_close"].loc[t], adj_open)
-    report["trades"] = len(trades)
-
     # --- score matured forecasts, update live statistics and promotions
     report["newScores"] = scoring.update(adj_open)
     report["promotion"] = promotion.review(reg)
@@ -179,6 +171,15 @@ def run_daily(force: bool = False, skip_data: bool = False, provider=None) -> di
     }
     link = snapshot.write(snap)
     report["snapshot"] = link
+
+    # Mutate the paper account only after the final deadline check and successful freeze.
+    # In particular, a slow forecast that crosses the open must not append orphan fills.
+    st = portfolio.state()
+    trades = portfolio.execute(st, adj_open.loc[t], t, adj_open) if t in adj_open.index else []
+    if st.get("lastRebalanceSession") and not trades and st.get("sessionsSinceRebalance") is not None:
+        st["sessionsSinceRebalance"] = int(st["sessionsSinceRebalance"]) + 1
+    portfolio.mark(st, t, ctx.mats["adj_close"].loc[t], adj_open)
+    report["trades"] = len(trades)
 
     # --- next paper orders
     if st.get("pending") is None:

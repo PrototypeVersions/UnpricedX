@@ -225,6 +225,7 @@ def status_json(reg: dict) -> dict:
     return {
         "project": "Unpriced", "updatedAt": iso(now_et()), "phase": "live" if snapshot.chain() else ("lab" if champ else "bootstrapping"),
         "lastSession": st.get("lastSession"), "entrySession": st.get("entrySession"), "lastRunAt": st.get("lastRunAt"),
+        "lastError": st.get("lastError"),
         "champion": {"id": champ, "name": info.get("name"), "status": reg.get("championStatus"), "note": info.get("note"),
                      "horizon": info.get("horizon")},
         "challengers": [{"id": k, "name": v.get("name"), "note": v.get("note")} for k, v in reg["models"].items() if v.get("role") == "challenger"],
