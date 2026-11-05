@@ -200,35 +200,43 @@ def portfolio_json() -> dict:
 
 def filings_json() -> dict:
     from .llm import reader
+    cfg = section("llm")
     rec = reader.records()
-    out = {"enabled": reader.enabled(), "model": section("llm")["model"], "count": int(len(rec)), "recent": [], "evaluation": None}
+    out = {"enabled": reader.enabled(), "model": cfg["model"], "promptVersion": cfg.get("promptVersion"),
+           "forms": cfg.get("forms"), "items": cfg.get("eightKItems"), "count": int(len(rec)), "recent": [], "evaluation": None}
     if rec.empty:
         return out
     rec = rec.sort_values("readAt", ascending=False)
-    cols = ["ticker", "form", "items", "filingDate", "reactionSession", "event_type", "direction", "surprise", "guidance",
-            "materiality", "confidence", "summary"]
+    for c in ("inputTokens", "outputTokens"):
+        if c in rec:
+            out[c] = int(pd.to_numeric(rec[c], errors="coerce").fillna(0).sum())
+    if "guidance" in rec:
+        out["answered"] = int((~rec["guidance"].isin(["unclear"])).sum())
+    cols = ["ticker", "form", "items", "filingDate", "readAt", "guidance", "guidance_evidence", "ruleGuidance", "summary"]
     out["recent"] = rec[[c for c in cols if c in rec]].head(150).to_dict(orient="records")
-    try:  # event-level check: realized 5-session excess return after the reaction session, by direction
+    try:  # event-level check from the first open AFTER the reading finished, 5 sessions, vs SPY
         p = store.read("prices", columns=["date", "ticker", "open", "close", "adj_close"])
-        p = p[p["date"] >= pd.to_datetime(rec["reactionSession"]).min() - pd.Timedelta(days=5)]
+        read_at = pd.to_datetime(rec["readAt"], utc=True).dt.tz_convert("America/New_York")
+        p = p[p["date"] >= read_at.min().tz_localize(None).normalize() - pd.Timedelta(days=5)]
         adj_open = (p.pivot(index="date", columns="ticker", values="open") * (p.pivot(index="date", columns="ticker", values="adj_close")
                     / p.pivot(index="date", columns="ticker", values="close")))
+        opens = pd.DatetimeIndex(adj_open.index).tz_localize("America/New_York") + pd.Timedelta(hours=9, minutes=30)
         bench = section("data")["benchmark"]
         rows = []
-        for r in rec.itertuples():
-            s = pd.Timestamp(r.reactionSession)
-            if s not in adj_open.index or r.ticker not in adj_open:
+        for r, ra in zip(rec.itertuples(), read_at):
+            i = int(opens.searchsorted(ra, side="right"))      # first open strictly after readAt
+            if r.ticker not in adj_open or i + 5 >= len(adj_open):
                 continue
-            i = adj_open.index.get_loc(s)
-            if i + 6 >= len(adj_open):
-                continue
-            ret = adj_open[r.ticker].iloc[i + 6] / adj_open[r.ticker].iloc[i + 1] - 1
-            bret = adj_open[bench].iloc[i + 6] / adj_open[bench].iloc[i + 1] - 1
-            rows.append({"direction": int(r.direction), "excess": float(ret - bret)})
+            ret = adj_open[r.ticker].iloc[i + 5] / adj_open[r.ticker].iloc[i] - 1
+            bret = adj_open[bench].iloc[i + 5] / adj_open[bench].iloc[i] - 1
+            if pd.notna(ret) and pd.notna(bret):
+                rows.append({"ai": getattr(r, "guidance", None), "rule": getattr(r, "ruleGuidance", None), "excess": float(ret - bret)})
         if rows:
-            ev = pd.DataFrame(rows).groupby("direction")["excess"].agg(["mean", "count"]).reset_index()
-            out["evaluation"] = {"note": "Excess return vs SPY from the open after the reaction session, over 5 sessions.",
-                                 "byDirection": ev.round(5).to_dict(orient="records")}
+            ev = pd.DataFrame(rows)
+            by = lambda col: (ev.dropna(subset=[col]).groupby(col)["excess"].agg(["mean", "count"]).reset_index()
+                              .rename(columns={col: "call"}).round(5).to_dict(orient="records"))
+            out["evaluation"] = {"note": "Excess return vs SPY over 5 sessions, from the first market open after the reading was finished.",
+                                 "ai": by("ai"), "rule": by("rule")}
     except Exception:
         pass
     return out
@@ -267,7 +275,7 @@ def export_json() -> dict | None:
     future = cal(entry, entry + pd.Timedelta(days=20))
     h = int(section("live")["primaryHorizon"])
     exit_session = future[h] if len(future) > h else None
-    models = [{"id": mid, "role": "champion" if mid == snap.get("champion") else "challenger",
+    models = [{"id": mid, "role": "champion" if mid == snap.get("champion") else ("baseline" if m.get("role") == "benchmark" else "challenger"),
                "artifactSha256": m.get("fitSha256"), "trainedThrough": m.get("trainedThrough")}
               for mid, m in snap["models"].items() if int(m.get("horizon", h)) == h]
     if exit_session is None or not models:
@@ -280,7 +288,7 @@ def export_json() -> dict | None:
                 "experiment": f"unpricedx-{snap.get('championStatus') or 'live'}", "codeCommit": snap.get("code") or code_version()},
         "forecastId": f"stock-lab/{snap['session']}/{task}",
         "decisionSession": snap["session"],
-        "informationCutoff": pd.Timestamp(snap["session"]).tz_localize("America/New_York").replace(hour=17, minute=30).isoformat(),
+        "informationCutoff": snap["decidedAt"],
         "issuedAt": snap["decidedAt"],
         "entry": {"session": snap["entrySession"], "price": "open"},
         "exit": {"session": exit_session.date().isoformat(), "price": "open"},
@@ -295,7 +303,7 @@ def export_json() -> dict | None:
         "provenance": {"snapshotPath": link["file"], "snapshotSha256": link["sha256"], "chainPrevHash": link.get("prevHash"),
                        "inputFingerprint": snap.get("dataFingerprint")},
         "limitations": ["Historical research uses free data that omits delisted companies (survivorship bias); live forecasts are unaffected.",
-                        "Information cutoff is set to 17:30 ET of the decision session: SEC filings accepted before then may be used."],
+                        "Information cutoff is the moment the forecast was frozen: SEC filings read before then may be used."],
     }
 
 

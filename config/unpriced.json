@@ -76,6 +76,7 @@
 
   "live": {
     "primaryHorizon": 5,
+    "benchmarkModel": "factor_ret_1w",
     "settleMinutes": 90,
     "forecastUniverse": "research",
     "maxChallengers": 4,
@@ -102,10 +103,12 @@
     "enabled": true,
     "apiKeyEnvVar": "ANTHROPIC_API_KEY",
     "model": "claude-haiku-5-5",
+    "promptVersion": "guidance-1",
     "maxFilingsPerDay": 150,
+    "maxMinutes": 15,
     "maxCharsPerFiling": 40000,
-    "forms": ["8-K", "10-Q", "10-K"],
-    "eightKItems": ["1.01", "1.02", "2.01", "2.02", "2.05", "2.06", "3.01", "4.01", "4.02", "5.02", "7.01", "8.01"],
+    "forms": ["8-K"],
+    "eightKItems": ["2.02"],
     "signalDecaySessions": 5,
     "overlayWeight": 0.25,
     "minDaysBeforeTraining": 252

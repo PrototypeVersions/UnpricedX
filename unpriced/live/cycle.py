@@ -80,20 +80,20 @@ def add_llm_overlay(models: dict, panel: pd.DataFrame, t: pd.Timestamp, dates: p
     champ = reg.get("champion")
     if champ not in models:
         return
-    sig = reader.signal(t, dates).reindex(panel["ticker"]).fillna(0.0).to_numpy()
     base = pd.Series(models[champ]["score"], dtype=float)
     base_pct = base.rank(pct=True).fillna(0.5).to_numpy() - 0.5
-    nz = sig != 0
-    llm_pct = np.zeros_like(sig)
-    if nz.sum() >= 3:
-        llm_pct[nz] = pd.Series(sig[nz]).rank(pct=True).to_numpy() - 0.5
     w = float(section("llm")["overlayWeight"])
-    score = base_pct + w * llm_pct
-    oid = f"llm_overlay-on-{champ}"
-    models[oid] = {"role": "challenger", "name": "champion + AI filing reader", "horizon": models[champ]["horizon"],
-                   "fitSha256": models[champ]["fitSha256"], "trainedThrough": models[champ]["trainedThrough"],
-                   "score": [round(float(v), 6) for v in score], "llmCovered": int(nz.sum()),
-                   "probBeatMedian": None, "expectedExcess": None}
+    # two shadow challengers on the same documents: the AI's reading of guidance, and a keyword rule
+    for source, name in (("llm", "champion + AI guidance reading"), ("rule", "champion + simple guidance rule")):
+        sig = reader.signal(t, dates, source=source).reindex(panel["ticker"]).fillna(0.0).to_numpy()
+        nz = sig != 0
+        adj = np.where(nz, np.sign(sig) * 0.5, 0.0)       # raised -> top of the range, lowered -> bottom
+        score = base_pct + w * adj
+        models[f"{source}_guidance-on-{champ}"] = {
+            "role": "challenger", "name": name, "horizon": models[champ]["horizon"],
+            "fitSha256": models[champ]["fitSha256"], "trainedThrough": models[champ]["trainedThrough"],
+            "score": [round(float(v), 6) for v in score], "llmCovered": int(nz.sum()),
+            "probBeatMedian": None, "expectedExcess": None}
 
 
 def run_daily(force: bool = False, skip_data: bool = False, provider=None) -> dict:
@@ -143,7 +143,7 @@ def run_daily(force: bool = False, skip_data: bool = False, provider=None) -> di
     # --- forecasts
     panel, models = predict_models(ctx, t, reg)
     add_llm_overlay(models, panel, t, ctx.dates, reg)
-    used = sorted({f for m in reg["models"].values() if m.get("role") in ("champion", "challenger")
+    used = sorted({f for m in reg["models"].values() if m.get("role") in ("champion", "challenger", "benchmark")
                    for f in m.get("fit", {}).get("features", [])})
     inputs = {
         "note": "Exact within-day ranked inputs the models saw (null = missing), so anyone can recompute the scores.",

@@ -18,8 +18,9 @@ import pandas as pd
 from scipy.stats import norm
 
 EULER_GAMMA = 0.5772156649
-METRICS_VERSION = 3   # 2: hysteresis portfolios (matching the live portfolio) are the primary economic test
+METRICS_VERSION = 4   # 2: hysteresis portfolios (matching the live portfolio) are the primary economic test
                       # 3: long-only also applies the live portfolio's cap of names per statistical sector
+                      # 4: portfolios pick holdings without knowing which exit prices exist (missing exit = 0%)
 
 
 def daily_ic(df: pd.DataFrame, pred: str, target: str, min_names: int = 30) -> pd.Series:
@@ -73,6 +74,20 @@ def _rebalance_dates(dates: np.ndarray, h: int) -> np.ndarray:
     return u[::h]
 
 
+def _exits_unknown_at_selection(d: pd.DataFrame, col: str) -> pd.DataFrame:
+    """Holdings are chosen without knowing which exit prices will exist.
+
+    Dropping rows with a missing future return before selecting would quietly replace a stock that
+    later delisted or stopped trading with the next one, which no one could have done at the time.
+    Declared rule: a holding whose exit price is missing earns 0% over the window (as if held in cash).
+    Dates whose outcomes are not known yet (most exits missing) are left out.
+    """
+    known = d[col].notna().groupby(d["date"]).transform("mean")
+    d = d[known >= 0.5].copy()
+    d[col] = d[col].fillna(0.0)
+    return d
+
+
 def _buffered_side(day: pd.DataFrame, pred: str, prev: dict, k: int, keep_frac: float, top: bool) -> list[str]:
     """Hysteresis selection: keep previous names still inside the wider `keep_frac` band, then fill
     to k names from the best-ranked ones. Mirrors how the live portfolio avoids churning."""
@@ -93,7 +108,7 @@ def long_short(df: pd.DataFrame, pred: str, h: int, cost_bps: pd.Series | None =
     (hysteresis, as the live portfolio does); `keep_frac=None` rebuilds both legs from scratch
     each time. Returns one row per holding period: gross, cost, net, turnover.
     """
-    d = df[["date", "ticker", pred, f"fwd_{h}", "liq_rank"]].dropna(subset=[pred, f"fwd_{h}"])
+    d = _exits_unknown_at_selection(df[["date", "ticker", pred, f"fwd_{h}", "liq_rank"]].dropna(subset=[pred]), f"fwd_{h}")
     reb = _rebalance_dates(d["date"].to_numpy(), h)
     rows, prev_long, prev_short = [], {}, {}
     for date, day in d[d["date"].isin(reb)].groupby("date"):
@@ -142,7 +157,7 @@ def long_only(df: pd.DataFrame, pred: str, h: int, n: int | None = None, exit_ra
     exit_rank = int(exit_rank or pcfg["exitRank"])
     cap = pcfg.get("maxPerSector") if max_per_sector == "config" else max_per_sector
     cols = ["date", "ticker", pred, f"fwd_{h}", f"bench_{h}", "liq_rank"] + (["sector"] if "sector" in df.columns else [])
-    d = df[df["tradable"].astype(bool)][cols].dropna(subset=[pred, f"fwd_{h}"])
+    d = _exits_unknown_at_selection(df[df["tradable"].astype(bool)][cols].dropna(subset=[pred]), f"fwd_{h}")
     reb = _rebalance_dates(d["date"].to_numpy(), h)
     rows, prev = [], {}
     for date, day in d[d["date"].isin(reb)].groupby("date"):

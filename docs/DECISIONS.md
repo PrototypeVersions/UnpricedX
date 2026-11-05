@@ -119,3 +119,31 @@ Prompted by the second real-data sweep and by GPT's cross-review of the design.
 - **Wording.** The site now says what it does in plain language ("Can it pick stocks better than
   chance?"), describes the evening timing introduced on 2026-11-05, names models by what they are,
   and links to UnpricedHub. No rule, gate or record changed.
+
+## 2026-11-05: review fixes from the Risk Lab's author; benchmark; narrower AI reader
+Prompted by an outside review (GPT, author of UnpricedZ). All points below were checked and accepted.
+- **Missing-exit look-ahead (bug, research only).** The backtest portfolios dropped stocks whose
+  5-day exit price was missing *before* choosing holdings, i.e. they knew in advance which stocks
+  would stop trading. Now holdings are chosen from every ranked stock, a missing exit counts as a 0%
+  return for that slot, and a day is skipped only if most exits are missing (a data gap, not a stock
+  event). `METRICS_VERSION` 3 → 4. Old ledger lines stay as they were; the Saturday sweep re-scores
+  every idea under version 4, and the site shows the version beside each result so both are visible.
+  The ranking measure (IC) is computed separately and did not change; the gates that use long-short
+  net returns can move either way under version 4, and the gate rules themselves are unchanged.
+  Live forecasts and the live paper account were not affected (they never see future prices).
+- **Benchmark.** The simple rule "favor last week's losers" (`factor_ret_1w`) scored nearly the same
+  development IC as the champion blend (0.0154 vs 0.0156). It now runs live with role `benchmark`:
+  forecast, frozen and scored like every model, exported to the Hub as role `baseline`, never
+  promoted. If the champion cannot beat it live, that is the finding.
+- **Hub export cutoff.** `informationCutoff` was a fixed 17:30 ET; it is now the forecast's own
+  `decidedAt`, which is the true moment after which nothing else can enter it.
+- **AI filing reader narrowed before its first read.** One question, on earnings releases only
+  (8-K item 2.02): did management raise, maintain, lower, withdraw or first give guidance, with the
+  supporting sentence quoted, and an explicit "unclear". A keyword rule reads the same text. Two
+  shadow challengers (champion + AI guidance; champion + rule guidance) test whether the AI adds
+  anything beyond the rule. Each reading records model, prompt version, read time, size and tokens.
+  A reading counts only for forecasts frozen after it finished, is graded from the first open after
+  it finished (previously: from the filing's reaction session), and reading has a 15-minute budget so
+  it cannot delay the forecast. No reading has happened yet (no API key), so nothing is rewritten.
+- **Not changed:** gates, eras, promotion rule, holdout. The three tree challengers that gave
+  identical scores on Nov 3–4 are handled by the duplicate fix above plus Saturday's re-score.

@@ -134,6 +134,7 @@
     if (!name) return "–";
     const parts = String(name).split(/~|-(?=[a-z])/);
     const root = parts[0].split("_");
+    if (name === "factor_ret_1w") return "Simple rule: favor last week's losers";
     if (root[0] === "factor") return `Single signal: ${root.slice(1).join("_")}`;
     const kind = { ens: "Blend of models", gbm: "Tree model", ridge: "Linear model" }[root[0]] || root[0];
     const bits = [kind];
@@ -154,7 +155,7 @@
     return [...bits, ...extra].join(", ");
   }
   const modelName = (id) => friendly(codeName(id));
-  const roleText = (r) => ({ champion: "Champion", challenger: "Challenger", retired: "Retired", overlay: "Overlay" }[r] || "–");
+  const roleText = (r) => ({ champion: "Champion", challenger: "Challenger", retired: "Retired", overlay: "Overlay", benchmark: "Benchmark" }[r] || "–");
   const statusText = (s) => ({ gated: "Passed every test in the lab", provisional: "Default picked in advance; none has passed every test yet", "promoted-live": "Promoted on its live record" }[s] || s || "");
   const HUB = "https://prototypeversions.github.io/UnpricedHub/";
   const MIN_WEEKS = 26;
@@ -254,7 +255,7 @@
         <div>
           <h2>What it does each day</h2>
           <ol class="steps">
-            <li>After the market closes, it downloads the day's prices${src.sec ? " and new SEC filings" : ""}${src.llm ? ", and has Claude read the new filings" : ""}.</li>
+            <li>After the market closes, it downloads the day's prices${src.sec ? " and new SEC filings" : ""}${src.llm ? ", and has Claude read the new earnings releases" : ""}.</li>
             <li>Every live model scores every stock. The scores go into a file whose fingerprint is chained to the previous day's, so the past cannot be quietly edited.</li>
             <li>The $1,000 paper portfolio places its orders for the next open, using only that locked file.</li>
             <li>Forecasts whose five trading days are over are graded, and the results above are updated.</li>
@@ -525,30 +526,34 @@
   function viewFilings() {
     const el = $("#filings");
     const f = D.filings || {};
-    let html = `<h1>AI filings</h1><p class="lede">Claude reads new 8-K, 10-Q and 10-K filings for stocks in the universe and records whether each looks good or bad news, how surprising, and how much it matters.</p>
-      <div class="note"><p>This signal is only judged live. A language model has read the internet up to its training cutoff, so testing it on older filings would let it remember what happened next. Research on news-reading models also finds the edge is short-lived and smallest in large, cheap-to-trade stocks, so the bar here is real.</p></div>`;
+    const G = { raised: "Raised", maintained: "Maintained", lowered: "Lowered", withdrawn: "Withdrawn", initiated: "First given", none: "No guidance", unclear: "Unclear" };
+    let html = `<h1>AI filings</h1><p class="lede">One narrow question, asked of every new earnings release (8-K item 2.02) for stocks in the universe: did management raise, keep, lower or withdraw its guidance? Claude answers with the sentence that supports it, or says it can't tell.</p>
+      <div class="note"><p>A simple keyword rule reads the same documents, so the test is whether the AI adds anything a cheap rule can't. Each feeds its own shadow challenger (the champion's ranking, nudged up for raised guidance and down for lowered or withdrawn). Neither changes the champion or the paper portfolio unless it earns promotion like any other model.</p>
+      <p>This is only judged live: a language model has read the internet up to its training cutoff, so testing it on older filings would let it remember what happened next. A reading only counts for forecasts frozen after it was finished, and is graded from the first market open after that.</p></div>`;
     if (!f.enabled && !f.count) {
       html += `<p class="empty">Switched off. It starts automatically once an Anthropic API key and an SEC contact email are added to the repository's secrets.</p>`;
       el.innerHTML = html;
       return;
     }
-    html += `<dl class="kv"><dt>Status</dt><dd>${f.enabled ? "reading every morning" : "paused (key or email missing)"}</dd><dt>Filings read</dt><dd>${f.count}</dd><dt>Model</dt><dd>${esc(f.model)}</dd></dl>`;
-    if (f.evaluation?.byDirection?.length) {
-      html += `<h2>Did the calls work?</h2><p class="muted">${esc(f.evaluation.note)}</p>` + table([
-        { h: "Claude's call", k: "direction", l: true, f: (r) => ({ "-2": "Very negative", "-1": "Negative", "0": "Neutral", "1": "Positive", "2": "Very positive" }[String(r.direction)]) },
-        { h: "Filings", k: "count", f: (r) => r.count },
+    const tok = isNum(f.inputTokens) ? `${Math.round((f.inputTokens + (f.outputTokens || 0)) / 1000).toLocaleString()}k tokens` : "–";
+    html += `<dl class="kv"><dt>Status</dt><dd>${f.enabled ? "reading every evening" : "paused (key or email missing)"}</dd><dt>Releases read</dt><dd>${f.count}${isNum(f.answered) ? ` (${f.answered} answered, ${f.count - f.answered} unclear)` : ""}</dd><dt>Model</dt><dd>${esc(f.model)} · prompt ${esc(f.promptVersion || "–")}</dd><dt>Usage</dt><dd>${tok}</dd></dl>`;
+    const ev = f.evaluation;
+    if (ev && (ev.ai?.length || ev.rule?.length)) {
+      const t = (rows) => table([
+        { h: "Call", k: "call", l: true, f: (r) => esc(G[r.call] || r.call) },
+        { h: "Releases", k: "count", f: (r) => r.count },
         { h: "Average excess return", k: "mean", f: (r) => spct(r.mean, 2), cls: (r) => cls(r.mean) },
-      ], f.evaluation.byDirection, { sortable: false });
+      ], rows, { sortable: false });
+      html += `<h2>Did the calls work?</h2><p class="muted">${esc(ev.note)} A few dozen releases per row is still noise.</p>
+        <h3>Claude</h3>${t(ev.ai || [])}<h3>Keyword rule</h3>${t(ev.rule || [])}`;
     }
     html += `<h2>Recent reads</h2>` + (f.recent?.length ? table([
       { h: "Ticker", k: "ticker", l: true, f: (r) => `<span class="ticker">${esc(r.ticker)}</span>` },
-      { h: "Form", k: "form", l: true, f: (r) => esc(r.form) },
-      { h: "Public", k: "reactionSession", f: (r) => esc(dateFmt(r.reactionSession)) },
-      { h: "Call", k: "direction", f: (r) => `<span class="${cls(r.direction)}">${snum(r.direction, 0)}</span>` },
-      { h: "Surprise", k: "surprise", f: (r) => snum(r.surprise, 0) },
-      { h: "Matters", k: "materiality", f: (r) => pct(r.materiality, 0) },
-      { h: "Summary", k: "summary", l: true, f: (r) => `<span class="small">${esc(r.summary)}</span>` },
-    ], f.recent.slice(0, 80), { sortable: false }) : `<p class="empty">No filings read yet.</p>`);
+      { h: "Read", k: "readAt", f: (r) => esc(dateFmt(String(r.readAt || "").slice(0, 10))) },
+      { h: "Claude", k: "guidance", l: true, f: (r) => esc(G[r.guidance] || r.guidance || "–") },
+      { h: "Rule", k: "ruleGuidance", l: true, f: (r) => esc(G[r.ruleGuidance] || r.ruleGuidance || "–") },
+      { h: "Supporting sentence", k: "guidance_evidence", l: true, f: (r) => `<span class="small">${esc(r.guidance_evidence || r.summary || "")}</span>` },
+    ], f.recent.slice(0, 80), { sortable: false }) : `<p class="empty">No releases read yet.</p>`);
     el.innerHTML = html;
   }
 

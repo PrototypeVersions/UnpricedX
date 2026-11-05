@@ -77,3 +77,20 @@ def test_registry_retires_a_duplicate_challenger_without_current_evidence(tmp_pa
     assert out["models"]["gbm_all-a"]["role"] == "challenger"
     assert out["models"]["gbm_all_h21-h5-a"]["role"] == "retired"
     assert out["champion"] == "ens_all-c"
+
+
+def test_portfolios_do_not_skip_stocks_whose_exit_price_is_missing():
+    import numpy as np
+    import pandas as pd
+    from unpriced.lab.metrics import long_short
+
+    rows = []
+    for d in pd.bdate_range("2020-01-01", periods=10):
+        for i in range(100):
+            fwd = 0.05 if i >= 90 else 0.0
+            if i == 99:
+                fwd = np.nan          # the best-ranked stock later stops trading
+            rows.append({"date": d, "ticker": f"T{i}", "pred": float(i), "fwd_5": fwd, "liq_rank": 1})
+    out = long_short(pd.DataFrame(rows), "pred", 5, cost_bps=pd.Series(dtype=float), keep_frac=None)
+    # it is still held (earning 0%), not swapped for the next-best name: 9 of 10 longs earn 5%
+    assert np.allclose(out["long"], 0.045)

@@ -147,10 +147,10 @@ def update_registry(data_sig: str) -> dict:
         m.update({"role": role, "name": e.get("name"), "note": note, "dev": e["metrics"],
                   "devGates": e["gates"], "holdout": hold.get(e["id"], {}).get("metrics"),
                   "holdoutGates": hold.get(e["id"], {}).get("gates"),
-                  "calibration": (hold.get(e["id"]) or e)["calibration"], "horizon": int(e["spec"].get("horizon", 5))})
+                  "calibration": (hold.get(e["id"]) or e).get("calibration"), "horizon": int(e["spec"].get("horizon", 5))})
 
     for mid, info in reg["models"].items():          # keep live models' lab evidence current
-        if mid in dev and info.get("role") in ("champion", "challenger"):
+        if mid in dev and info.get("role") in ("champion", "challenger", "benchmark"):
             add(dev[mid], info["role"], info.get("note", ""))
 
     current = reg.get("champion")
@@ -201,6 +201,14 @@ def update_registry(data_sig: str) -> dict:
         add(e, "challenger", note)
         challengers.append(e["id"])
         reg["history"].append({"at": iso(now_et()), "event": "challenger added", "to": e["id"], "note": note})
+    # a simple rule forecasts live beside the models, so "better than chance" is never the only bar:
+    # favoring last week's losers (short-term reversal) nearly matched the champion on history
+    bench = lcfg.get("benchmarkModel")
+    if bench and not any(v.get("role") == "benchmark" for v in reg["models"].values()):
+        b = next((e for e in dev.values() if e.get("name") == bench), None)
+        if b:
+            add(b, "benchmark", "simple rule the models must beat: favor last week's losers")
+            reg["history"].append({"at": iso(now_et()), "event": "benchmark added", "to": b["id"]})
     ledger.save_registry(reg)
     return reg
 

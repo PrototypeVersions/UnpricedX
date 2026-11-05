@@ -140,4 +140,4 @@ def save_registry(reg: dict) -> None:
 
 def live_models(reg: dict | None = None) -> list[str]:
     reg = reg or registry()
-    return [k for k, v in reg["models"].items() if v.get("role") in ("champion", "challenger")]
+    return [k for k, v in reg["models"].items() if v.get("role") in ("champion", "challenger", "benchmark")]
