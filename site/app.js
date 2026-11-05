@@ -203,8 +203,8 @@
     const src = st.sources || {};
     const ch = st.challengers || [];
     el.innerHTML = `
-      <h1>Searching for what markets haven't priced in</h1>
-      <p class="lede">An open research lab where machine-learning models forecast about 1,000 US stocks each day. Every forecast is locked in before the market opens and graded in public.</p>
+      <h1>An open laboratory for market prediction</h1>
+      <p class="lede">Machine-learning models forecast about 1,000 US stocks each day. Every forecast is locked in before the market opens and graded in public.</p>
       <div class="evidence">
         <div>
           <p class="panel-q">Does the leading model beat chance?</p>
