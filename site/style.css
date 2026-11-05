@@ -31,8 +31,10 @@ html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--paper); color: var(--ink);
   font-family: var(--font); font-size: 17px; line-height: 1.55;
-  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-feature-settings: "lnum" 1;
 }
+/* tabular figures only where numbers line up; in body text they widen hyphens */
+table, .facts dd, .kv dd, .counts, .chart text, .waiting-count { font-variant-numeric: tabular-nums; }
 a { color: var(--band); text-underline-offset: 3px; }
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, th:focus-visible {
   outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px;
@@ -76,6 +78,7 @@ p { margin: 0 0 14px; max-width: 72ch; }
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 28px; align-items: center;
 }
 @media (max-width: 860px) { .evidence { grid-template-columns: 1fr; padding: 20px 16px 14px; } }
+.panel-q { font-size: 16px; font-weight: 600; color: var(--muted); margin: 0 0 6px; }
 .verdict { font-size: clamp(26px, 3.4vw, 38px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; margin: 0 0 12px; }
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 16px 0 0; font-size: 15px; }
 .facts dt { color: var(--muted); }

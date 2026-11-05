@@ -203,10 +203,11 @@
     const src = st.sources || {};
     const ch = st.challengers || [];
     el.innerHTML = `
-      <h1>Can it pick stocks better than chance?</h1>
-      <p class="lede">After every trading day, Unpriced ranks about a thousand US stocks by how it expects them to do over the next five trading days. It locks that ranking in before the next open and later grades it against what actually happened.</p>
+      <h1>Searching for what markets haven't priced in</h1>
+      <p class="lede">An open research lab where machine-learning models forecast about 1,000 US stocks each day. Every forecast is locked in before the market opens and graded in public.</p>
       <div class="evidence">
         <div>
+          <p class="panel-q">Does the leading model beat chance?</p>
           <p class="verdict">${esc(verdict)}</p>
           <p>${esc(explain)}</p>
           <dl class="facts">
