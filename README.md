@@ -7,7 +7,7 @@ Unpriced separates **discovering** ideas from **proving** them:
 - The **lab** tests ideas on ~20 years of history with purged walk-forward evaluation. Every
   experiment is logged in an append-only ledger, and the bar an idea must clear rises with the
   number of ideas tried. Recent years are a sealed holdout.
-- The **live record** is the only evidence that counts. Every trading morning each live model ranks
+- The **live record** is the only evidence that counts. After each trading session each live model ranks
   ~1,000 US stocks for the next five sessions; the ranking is frozen into a file chained by SHA-256
   to the day before, and scored once the horizon has passed. Challengers replace the champion only
   when an anytime-valid confidence sequence says they are better.
@@ -24,7 +24,7 @@ Ranks remove market direction, so a rally does not count as skill.
 ## How it learns
 | When (ET) | What | How |
 |---|---|---|
-| Daily 06:10 (retries 07:10, 08:20) | Prices, filings, AI reads, forecasts frozen, portfolio orders, scoring | `daily.yml` |
+| Mon–Fri 18:23, 20:23; Tue–Sat 02:23; daily 06:10, 07:10, 08:20 | Prices, filings, AI reads, forecasts frozen before the next open, portfolio orders, scoring | `daily.yml` |
 | Saturday 09:40 | Full data refresh, research sweep, holdout tests, champion/challenger update, live refits | `weekly.yml` |
 | Tue–Sat 08:50 | Claude health check: confirms the cycle ran, opens a fix PR if something broke | scheduled Claude session |
 | Sunday 10:05 | Claude research session: reads the ledger and live record, proposes new features/experiments as a PR | scheduled Claude session |
@@ -38,6 +38,16 @@ Learning happens at four levels, each with its own guardrail:
 4. **Promotion**: only live, paired, non-overlapping evidence can replace a champion.
 
 See [`docs/LEARNING.md`](docs/LEARNING.md) and [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md).
+
+GitHub schedules can be delayed or dropped. Evening and overnight attempts give the daily cycle
+more time; they do not guarantee delivery. The entry session remains the session immediately after
+the data session. A run that starts or finishes forecasting at or after that open fails visibly,
+without moving the target to another day. Existing frozen forecasts make retries no-ops.
+
+The **Publish site** workflow deploys committed site files separately from data/research jobs.
+It runs after those workflows finish, on site changes, or on manual dispatch. A deployment or
+public-content check failure makes that workflow red. `data/deployment.json` on the public site
+identifies the deployed source commit and file hashes; its build time is not a forecast issue time.
 
 ## Data
 Free sources by default: Yahoo daily prices (via `yfinance`), Nasdaq Trader's symbol directory,

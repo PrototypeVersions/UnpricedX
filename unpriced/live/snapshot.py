@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..calendar import session_open, sessions
+from ..calendar import next_session, session_open
 from ..config import paths
 from ..util import append_jsonl, read_json, read_jsonl, sha256_bytes, sha256_file, write_json_gz, ET
 
@@ -29,14 +29,25 @@ def exists(session) -> bool:
     return snapshot_path(session).exists()
 
 
+class PublicationWindowMissed(RuntimeError):
+    """The registered next-open target can no longer be forecast in advance."""
+
+
 def entry_session(decided_at, after_session) -> pd.Timestamp:
-    """First session whose opening auction happens after the forecast was frozen."""
-    start = pd.Timestamp(after_session) + pd.Timedelta(days=1)
-    for d in sessions(start, start + pd.Timedelta(days=14)):
-        op = session_open(d.date().isoformat())
-        if op is not None and op > decided_at:
-            return d
-    raise RuntimeError("no session open found after decision time")
+    """Keep the next-session target fixed; never shift a late forecast to another open."""
+    entry = next_session(after_session)
+    op = session_open(entry.date().isoformat())
+    decided = pd.Timestamp(decided_at)
+    if decided.tzinfo is None:
+        raise ValueError("forecast issue time must include a timezone")
+    if op is None:
+        raise RuntimeError(f"no opening time for {entry.date()}")
+    if decided >= op:
+        raise PublicationWindowMissed(
+            f"forecast for {pd.Timestamp(after_session).date()} missed its fixed entry "
+            f"at {op.isoformat()}; no forecast or new order will be issued"
+        )
+    return entry
 
 
 def write(snapshot: dict) -> dict:

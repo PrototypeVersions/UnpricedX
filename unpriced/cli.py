@@ -41,10 +41,16 @@ def cmd_bootstrap(args) -> None:
 
 def cmd_daily(args) -> None:
     from .live.cycle import run_daily, StaleData
+    from .live.snapshot import PublicationWindowMissed
     from . import site_build
     try:
         rep = run_daily(force=args.force)
         print(dumps({k: v for k, v in rep.items() if k not in ("prices",)}))
+    except PublicationWindowMissed as exc:
+        L.error("forecast window missed: %s", exc)
+        _record_error("daily-publication-window-missed", exc)
+        site_build.build()
+        sys.exit(78)   # a missed deadline is a failure, not a temporary data retry
     except StaleData as exc:
         L.warning("data not ready: %s", exc)
         _record_error("daily-data-not-ready", exc)

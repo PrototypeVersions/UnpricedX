@@ -67,7 +67,7 @@
   },
 
   "schedule": {
-    "daily": "Every morning 06:10 ET, retries 07:10 and 08:20: process the previous session and freeze forecasts before the open",
+    "daily": "ET attempts: Mon-Fri 18:23 and 20:23, Tue-Sat 02:23, daily 06:10, 07:10 and 08:20. Freeze once before the next session's open; missed deadlines fail visibly.",
     "weekly": "Saturday 09:40 ET: refresh all data, run the research sweep, holdout tests and live refits",
     "aiHealthCheck": "Tue-Sat 08:50 ET: a Claude session checks the cycle ran and opens a fix PR if something broke",
     "aiResearch": "Sunday 10:05 ET: a Claude session reviews the lab and live record and proposes new experiments as a PR",

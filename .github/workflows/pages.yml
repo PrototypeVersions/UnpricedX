@@ -1,0 +1,52 @@
+name: Publish site
+
+# State jobs commit with GITHUB_TOKEN, which does not trigger push workflows.
+# workflow_run publishes their committed output, even when a job recorded an error.
+on:
+  push:
+    branches: [main]
+    paths: ['site/**', 'ops/pages.py', '.github/workflows/pages.yml']
+  workflow_run:
+    workflows: ['Daily cycle', 'Weekly lab', 'Ops request']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: unpriced-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare deployment manifest
+        run: python ops/pages.py prepare --site site --commit "$(git rev-parse HEAD)"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy site
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 1200000
+      - name: Verify the public site matches this deployment
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: python ops/pages.py verify --site site --url "$PAGE_URL" --attempts 12

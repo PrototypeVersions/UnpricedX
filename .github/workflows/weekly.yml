@@ -18,8 +18,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: unpriced-state
@@ -36,6 +34,9 @@ jobs:
       PYTHONUNBUFFERED: '1'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -44,23 +45,15 @@ jobs:
       - name: Restore data store
         run: bash ops/store.sh pull
       - name: Refresh data and run the lab
+        id: run
         run: python -m unpriced.cli weekly --minutes ${{ inputs.minutes || '200' }} ${{ inputs.skip_data && '--skip-data' || '' }}
       - name: Verify the record
+        id: verify
+        if: always() && steps.run.outcome != 'skipped'
         run: python -m unpriced.cli verify --base HEAD
       - name: Save the record
-        if: always()
+        if: always() && steps.verify.outcome == 'success'
         run: bash ops/commit.sh "weekly lab $(date -u +%Y-%m-%dT%H:%MZ)"
       - name: Save the data store
         if: success()
         run: bash ops/store.sh push
-      - name: Configure Pages
-        id: pages
-        continue-on-error: true
-        uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        if: steps.pages.outcome == 'success'
-        with:
-          path: site
-      - uses: actions/deploy-pages@v4
-        if: steps.pages.outcome == 'success'
-        continue-on-error: true

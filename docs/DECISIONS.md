@@ -84,3 +84,24 @@ Prompted by the second real-data sweep and by GPT's cross-review of the design.
   (new `dataSig`); re-scoring the same model is not a new trial.
 - **Forecasts are untouched.** The cap changes which ranked names the paper portfolio buys, not the
   ranks that are frozen and scored. Each order now records the cap and the sector of every target.
+
+## 2026-11-05: operational repair of timing and publication
+- **Observed:** the November 4 morning schedules ran hours after the open. The latest daily job
+  stayed green even though Pages waited ten minutes, timed out, and canceled its deployment.
+  The forecast code would choose a later entry session if an unfrozen forecast ran late, changing
+  the next-open task relative to the training labels.
+- **Timing:** add 18:23 and 20:23 ET weekday attempts and 02:23 ET Tuesday–Saturday retries, keeping
+  the existing morning attempts. The first complete, timely run freezes the same daily task;
+  later attempts remain no-ops. GitHub cron remains best effort.
+- **Deadline:** fix entry to the next exchange session after the data session. Check the open both
+  before fetching and immediately before freezing. Missing it produces a visible operational error
+  (exit 78), no new forecast, and no new paper order; no retroactive or shifted-entry forecast.
+  Paper-account mutation follows the final check so a slow forecast cannot append orphan fills.
+- **Publication:** one serialized Pages workflow, outside the state-job lock, checks out current main,
+  deploys with an explicit environment and a twenty-minute timeout, and then checks hashes of the
+  actual public HTML, assets, JSON and Hub export against the uploaded artifact. Errors are failures,
+  not ignored steps. A public deployment manifest distinguishes a site rebuild from a forecast issue.
+  Queued state jobs also check out current main; integrity must pass before their commits are saved.
+- **Scope:** no model, feature, holdout, gate, or promotion-policy changes. No historical forecast,
+  experiment, score, initial order, or registered result is rewritten. Regression tests cover late
+  starts, crossing the deadline during computation, holiday/DST calendars, and stale public files.

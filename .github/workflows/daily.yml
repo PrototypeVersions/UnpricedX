@@ -1,9 +1,14 @@
 name: Daily cycle
 
-# Runs before the US open and processes the previous session. Three attempts each morning:
-# the first that finds complete data freezes the forecast; later ones do nothing.
+# Start after the session cutoff, with overnight and morning retries. GitHub can delay
+# cron jobs by hours: the first timely run freezes the forecast; later runs are no-ops.
+# A missed next-open deadline fails visibly; it never shifts the forecast's target.
 on:
   schedule:
+    - cron: '23 18,20 * * 1-5'
+      timezone: 'America/New_York'
+    - cron: '23 2 * * 2-6'
+      timezone: 'America/New_York'
     - cron: '10 6 * * *'
       timezone: 'America/New_York'
     - cron: '10 7 * * *'
@@ -19,8 +24,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: unpriced-state
@@ -37,6 +40,9 @@ jobs:
       PYTHONUNBUFFERED: '1'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -54,21 +60,12 @@ jobs:
           if [ "$code" = "75" ]; then echo "::notice::Data for the last session is not complete yet; a later attempt will retry."; exit 0; fi
           exit $code
       - name: Verify the record
+        id: verify
+        if: always() && steps.run.outcome != 'skipped'
         run: python -m unpriced.cli verify --base HEAD
       - name: Save the record
-        if: always()
+        if: always() && steps.verify.outcome == 'success'
         run: bash ops/commit.sh "daily cycle $(date -u +%Y-%m-%dT%H:%MZ)"
       - name: Save the data store
-        if: steps.run.outputs.code == '0'
+        if: success() && steps.run.outputs.code == '0'
         run: bash ops/store.sh push
-      - name: Configure Pages
-        id: pages
-        continue-on-error: true
-        uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        if: steps.pages.outcome == 'success'
-        with:
-          path: site
-      - uses: actions/deploy-pages@v4
-        if: steps.pages.outcome == 'success'
-        continue-on-error: true

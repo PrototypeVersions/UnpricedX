@@ -63,13 +63,70 @@ def test_hash_chain_detects_tampering(tmp_path, monkeypatch):
         snap.write({"session": "2026-01-07", "decidedAt": "x", "entrySession": "x", "models": {}, "universe": [], "tradable": []})
 
 
-def test_entry_session_is_first_open_after_decision():
+def test_entry_session_is_fixed_and_late_forecasts_are_rejected():
     from unpriced.util import ET
     from datetime import datetime
     early = datetime(2026, 1, 6, 6, 10, tzinfo=ET)
     late = datetime(2026, 1, 6, 11, 0, tzinfo=ET)
     assert snap.entry_session(early, "2026-01-05") == pd.Timestamp("2026-01-06")
-    assert snap.entry_session(late, "2026-01-05") == pd.Timestamp("2026-01-07")
+    with pytest.raises(snap.PublicationWindowMissed):
+        snap.entry_session(late, "2026-01-05")
+    with pytest.raises(snap.PublicationWindowMissed):
+        snap.entry_session(datetime(2026, 1, 6, 9, 30, tzinfo=ET), "2026-01-05")
+    with pytest.raises(ValueError, match="timezone"):
+        snap.entry_session(datetime(2026, 1, 6, 6, 10), "2026-01-05")
+
+
+@pytest.mark.parametrize("session,issued,expected", [
+    ("2026-01-16", "2026-01-19T12:00:00-05:00", "2026-01-20"),  # MLK holiday
+    ("2026-03-06", "2026-03-09T13:29:59+00:00", "2026-03-09"),  # DST weekend
+    ("2026-11-27", "2026-11-27T18:23:00-05:00", "2026-11-30"),  # early close
+])
+def test_entry_deadline_uses_exchange_calendar(session, issued, expected):
+    assert snap.entry_session(pd.Timestamp(issued), session) == pd.Timestamp(expected)
+
+
+def test_daily_rejects_late_start_before_fetch_or_state_change(tmp_path, monkeypatch):
+    from unpriced.live import cycle
+    monkeypatch.setenv("UNPRICED_ROOT", str(tmp_path))
+    monkeypatch.setattr(cycle, "now_et", lambda: pd.Timestamp("2026-01-06T10:00:00-05:00"))
+    monkeypatch.setattr(cycle.ledger, "registry", lambda: pytest.fail("late run touched registry"))
+    monkeypatch.setattr(cycle.pipeline, "update_prices_job", lambda *a, **kw: pytest.fail("late run fetched prices"))
+    with pytest.raises(snap.PublicationWindowMissed):
+        cycle.run_daily()
+    assert not snap.chain()
+    assert not (tmp_path / "live" / "trades.jsonl").exists()
+    # A scheduled retry may arrive late after an on-time forecast was already frozen.
+    monkeypatch.setattr(cycle.snapshot, "exists", lambda t: True)
+    assert cycle.run_daily()["status"] == "noop"
+
+
+def test_daily_crossing_open_during_prediction_does_not_freeze_or_fill(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from unpriced.live import cycle
+    monkeypatch.setenv("UNPRICED_ROOT", str(tmp_path))
+    clock = iter(pd.to_datetime(["2026-01-06T08:00:00-05:00", "2026-01-06T09:30:00-05:00"]))
+    monkeypatch.setattr(cycle, "now_et", lambda: next(clock))
+    dates = pd.to_datetime(["2026-01-02", "2026-01-05"])
+    prices = pd.DataFrame({"date": dates, "ticker": ["SPY", "SPY"], "open": [100., 101.]})
+    ctx = SimpleNamespace(dates=dates, mats={"adj_open": pd.DataFrame({"SPY": [100., 101.]}, index=dates)},
+                          member={"research": pd.DataFrame({"SPY": [True, True]}, index=dates)})
+    reg = {"champion": "m", "models": {"m": {"role": "champion", "fit": {"features": ["f"]}}}}
+    panel = pd.DataFrame({"ticker": ["SPY"], "f": [0.5], "liq_rank": [1], "industry": [0], "tradable": [True]})
+    monkeypatch.setattr(cycle.ledger, "registry", lambda: reg)
+    monkeypatch.setattr(cycle.store, "read", lambda *a: prices)
+    monkeypatch.setattr(cycle.store, "meta", lambda: {"pricesSha256": "test"})
+    monkeypatch.setattr(cycle, "load_context", lambda **kw: ctx)
+    monkeypatch.setattr(cycle.scoring, "update", lambda *a: 0)
+    monkeypatch.setattr(cycle.promotion, "review", lambda *a: {})
+    monkeypatch.setattr(cycle, "predict_models", lambda *a: (panel, {"m": {"score": [0.1]}}))
+    monkeypatch.setattr(cycle, "add_llm_overlay", lambda *a: None)
+    monkeypatch.setattr(cycle.portfolio, "state", lambda: pytest.fail("missed forecast touched paper account"))
+    with pytest.raises(snap.PublicationWindowMissed):
+        cycle.run_daily(skip_data=True)
+    assert not snap.chain()
+    assert not snap.exists(dates[-1])
+    assert not (tmp_path / "live" / "trades.jsonl").exists()
 
 
 def test_portfolio_fills_at_open_and_includes_dividends(tmp_path, monkeypatch):
