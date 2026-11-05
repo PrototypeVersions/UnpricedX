@@ -164,6 +164,31 @@
   }
 
   /* ---------------------------------------------------------------- views */
+  function latestPreview() {
+    const f = D.forecasts;
+    if (!f || f.status !== "live" || !f.models?.[f.champion]) return "";
+    const m = f.models[f.champion];
+    const top = m.rows.slice(0, 10);
+    const time = new Date(f.decidedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+    return `<h2>Latest forecast</h2>
+      <p class="muted">The leading model's top 10 of about ${m.rows.length.toLocaleString("en-US")} stocks for the ${m.horizon} trading days from the ${esc(dateFmt(f.entrySession))} open, locked in ${esc(dateFmt(f.decidedAt))} at ${esc(time)} ET. A ranking against the other stocks, not advice.</p>
+      <ol class="top10">${top.map((r) => `<li><strong>${esc(r.ticker)}</strong><span>${esc(r.name || "")}</span></li>`).join("")}</ol>
+      <p class="small"><a href="#forecasts">See the full ranking</a></p>`;
+  }
+
+  // The Hub's own receipt for the latest forecast, read from its public data (shown only if it loads).
+  function showHubReceipt() {
+    fetch(`${HUB}data/hub.json`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((h) => {
+      const lab = h?.labs?.find((l) => l.id === "stock-lab");
+      const r = (lab?.recent || []).find((x) => x.forecastId && x.status !== "already-received" && x.status !== "unavailable");
+      const el = document.getElementById("hub-check");
+      if (!r || !el) return;
+      const when = new Date(r.receivedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+      const verdict = { live: "before the open", late: "after the open, so it does not count" }[r.status] || r.status;
+      el.innerHTML = `<a href="${HUB}">UnpricedHub</a> received the latest forecast ${esc(when)} ET, ${esc(verdict)}`;
+    });
+  }
+
   function viewOverview() {
     const el = $("#overview");
     const st = D.status || {};
@@ -184,17 +209,17 @@
       chart = s ? lineChart({ series: [{ x: s.dates, y: s.values }], width: 640, yFmt: (v) => v.toFixed(1), label: "Cumulative daily rank correlation on history" })
         + `<p class="legend small">Cumulative daily rank correlation between forecasts and next-week returns, ${c?.holdout ? "sealed holdout years" : "development years"}. Rising means the ranking was right more often than not.</p>` : "";
     } else if (!sk || !sk.n) {
-      verdict = "Not proven yet.";
+      verdict = "Not enough evidence yet.";
       explain = `${st.snapshots} forecast${st.snapshots === 1 ? " has" : "s have"} been locked in so far, but none has finished its five trading days, so nothing has been graded yet.`;
       chart = waiting;
     } else {
       const shown = sk.verdict === "positive skill" && sk.n >= minBlocks;
-      verdict = shown ? "Yes, so far." : sk.verdict === "negative skill" ? "No. So far it does worse than chance." : "Not proven yet.";
+      verdict = shown ? "Evidence of skill so far." : sk.verdict === "negative skill" ? "Evidence it ranks worse than chance." : "Not enough evidence yet.";
       const wide = sk.upper - sk.lower > 0.5;
       explain = (wide
         ? `After ${sk.n} weekly check${sk.n === 1 ? "" : "s"} there is far too little evidence to say: the range of plausible values still covers almost everything. `
         : `After ${sk.n} weekly checks, the model's ranking skill is between ${snum(sk.lower)} and ${snum(sk.upper)} (95% confidence; 0 means no better than chance). `)
-        + `It counts as proven once that whole range is above zero${shown ? "" : ` after at least ${minBlocks} weeks`}. The range is built so that checking it every week cannot fool it.`;
+        + `The lab reports evidence of skill once that whole range is above zero${shown ? "" : ` after at least ${minBlocks} weeks`}. That is a statistical judgment under the test's assumptions, not certainty; the range is built so that checking it every week cannot fool it.`;
       const p = sk.path || {};
       chart = lineChart({ series: [{ x: sk.sessions, y: p.mean }], band: { x: sk.sessions, lower: p.lower, upper: p.upper }, width: 640, clip: [-0.25, 0.25], yFmt: (v) => v.toFixed(2), label: "Live ranking skill with its 95% range" })
         + `<p class="legend"><span><i style="background:var(--band)"></i>average ranking skill so far</span><span><i style="background:var(--band-fill);height:10px"></i>95% range</span></p>`
@@ -207,9 +232,10 @@
       <p class="lede">Machine-learning models forecast about 1,000 US stocks each day. Every forecast is locked in before the market opens and graded in public.</p>
       <div class="evidence">
         <div>
-          <p class="panel-q">Does the leading model beat chance?</p>
+          <p class="panel-q">Does the leading model rank stocks better than chance?</p>
           <p class="verdict">${esc(verdict)}</p>
           <p>${esc(explain)}</p>
+          <p class="small muted">This grades ranking only. Better rankings do not by themselves mean profitable trades: trading costs can eat a small edge. Profit after costs is tested separately, by the lab and by the $1,000 portfolio.</p>
           <dl class="facts">
             <dt>Model in charge</dt><dd>${esc(st.champion?.name ? friendly(st.champion.name) : "none yet")}</dd>
             <dt>How it was chosen</dt><dd>${esc(statusText(st.champion?.status) || "–")}</dd>
@@ -217,11 +243,12 @@
             <dt>Forecasts locked in</dt><dd>${st.snapshots ?? 0}</dd>
             <dt>Ideas tried in the lab</dt><dd>${st.trials ?? 0}</dd>
             <dt>Latest trading day</dt><dd>${esc(dateFmt(st.lastSession))}</dd>
-            <dt>Independent check</dt><dd><a href="${HUB}">UnpricedHub</a> keeps and grades its own copy</dd>
+            <dt>Independent check</dt><dd id="hub-check"><a href="${HUB}">UnpricedHub</a> keeps and grades its own copy</dd>
           </dl>
         </div>
         <div>${chart || ""}</div>
       </div>
+      ${latestPreview()}
 
       <div class="grid2">
         <div>
@@ -240,6 +267,7 @@
           <p class="small muted">Data: Yahoo prices${src.sec ? ", SEC EDGAR filings" : " (SEC filings switch on once a contact email is configured)"}${src.llm ? ", Claude filing reader" : " (AI filing reader switches on once an API key is configured)"}.</p>
         </div>
       </div>`;
+    showHubReceipt();
   }
 
   function viewForecasts() {
@@ -528,7 +556,7 @@
     const el = $("#method");
     const sch = D.status?.schedule || {};
     el.innerHTML = `<h1>How it works</h1>
-      <p class="lede">Unpriced separates discovering ideas from proving them. History is used to find and reject ideas quickly; only forecasts frozen before the market opens can prove anything.</p>
+      <p class="lede">Unpriced separates discovering ideas from proving them. History is used to find and reject ideas quickly; only forecasts locked in before the market opens count as evidence.</p>
       <h2>What is predicted</h2>
       <p>For about a thousand of the most traded US stocks, each model gives a score for the next five sessions, entered at the next open. Scores rank stocks against each other, so a market-wide rally or crash does not count as skill. The universe on each date is chosen from that date's own trading volume and price, never from which companies later became large.</p>
       <h2>Keeping it honest</h2>
