@@ -25,3 +25,13 @@ def test_signal_ignores_readings_finished_after_the_forecast(monkeypatch):
     assert s.get("AAA", 0) > 0 and "BBB" not in s.index
     r = reader.signal(pd.Timestamp("2026-11-04"), dates, source="rule", asof=pd.Timestamp("2026-11-04 20:00"))
     assert r.get("AAA", 0) > 0 and r.get("BBB", 0) == 0
+
+
+def test_press_release_exhibits_are_found_by_document_type():
+    from unpriced.data.sec import exhibits_from_index
+    html = """<table class="tableFile"><tr><th>Seq</th><th>Description</th><th>Document</th><th>Type</th><th>Size</th></tr>
+    <tr><td scope="row">1</td><td scope="row">8-K</td><td scope="row"><a href="/Archives/edgar/data/2488/000000248826000123/amd-20261104.htm">amd-20261104.htm</a></td><td scope="row">8-K</td><td>35123</td></tr>
+    <tr><td scope="row">2</td><td scope="row">PRESS RELEASE</td><td scope="row"><a href="/Archives/edgar/data/2488/000000248826000123/q3-26pressrelease.htm">q3-26pressrelease.htm</a></td><td scope="row">EX-99.1</td><td>201234</td></tr>
+    <tr><td scope="row">3</td><td scope="row">SLIDES</td><td scope="row"><a href="/ix?doc=/Archives/edgar/data/2488/000000248826000123/exhibit992.htm">exhibit992.htm</a></td><td scope="row">EX-99.2</td><td>9000</td></tr>
+    <tr><td scope="row">4</td><td scope="row">GRAPHIC</td><td scope="row"><a href="/Archives/edgar/data/2488/000000248826000123/logo.jpg">logo.jpg</a></td><td scope="row">GRAPHIC</td><td>900</td></tr></table>"""
+    assert exhibits_from_index(html) == ["q3-26pressrelease.htm", "exhibit992.htm"]

@@ -147,3 +147,15 @@ Prompted by an outside review (GPT, author of UnpricedZ). All points below were 
   it cannot delay the forecast. No reading has happened yet (no API key), so nothing is rewritten.
 - **Not changed:** gates, eras, promotion rule, holdout. The three tree challengers that gave
   identical scores on Nov 3–4 are handled by the duplicate fix above plus Saturday's re-score.
+
+## 2026-11-06: AI reader was missing most press releases (bug)
+- **Bug.** The reader found an earnings 8-K's press release only when its file name contained
+  "ex99"/"ex-99". Many companies name it otherwise (e.g. `q3pressrelease.htm`, `exhibit991.htm`),
+  so on the first night 71 of 150 readings saw only the 8-K cover page and correctly answered
+  "unclear" (median 4,000 characters of text versus 22,000 overall). The reader now takes the
+  exhibits whose declared document type is EX-99.x from the filing's EDGAR index page, with the
+  file-name guess only as a fallback, and gives the cover page a smaller share of the text budget.
+- **Effect on the record.** The 2026-11-05 readings stay as they were (append-only). An "unclear"
+  reading contributes 0 to the guidance challengers, so the Nov 5 forecast's AI and rule challengers
+  simply had less coverage than intended; no champion, benchmark or portfolio forecast was affected.
+  Those filings are not re-read. The prompt is unchanged (`guidance-1`).

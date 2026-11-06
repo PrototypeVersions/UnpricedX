@@ -133,9 +133,10 @@ def filing_text(sec, row) -> str:
     main = sec.document_text(row.cik, row.accession, row.primary_doc, max_chars=400_000) if row.primary_doc else ""
     if row.form in ("10-Q", "10-K"):
         return _mdna(main)[:limit]
-    parts = [main[: limit // 3]]
-    for name in sec.filing_files(row.cik, row.accession):
-        if re.search(r"(?i)ex-?99", name) and name.lower().endswith((".htm", ".html", ".txt")):
+    # the 8-K body is mostly a cover page; the results and guidance are in the EX-99 press release
+    parts = [main[: limit // 8]]
+    for name in sec.exhibits(row.cik, row.accession):
+        if name != row.primary_doc:
             parts.append(sec.document_text(row.cik, row.accession, name, max_chars=limit))
     return "\n\n---\n\n".join(p for p in parts if p)[:limit]
 

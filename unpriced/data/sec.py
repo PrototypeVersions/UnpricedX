@@ -184,12 +184,42 @@ class SecClient:
             return []
         return [it.get("name", "") for it in r.json().get("directory", {}).get("item", [])]
 
+    def exhibits(self, cik: int, accession: str, prefix: str = "EX-99") -> list[str]:
+        """File names of a filing's exhibits whose declared document type starts with `prefix`
+        (e.g. EX-99.1, the press release in an earnings 8-K), in filing order. Uses the filing
+        index page, which states each document's type; file names alone are unreliable."""
+        acc = accession.replace("-", "")
+        r = self.get(f"{self.BASE}/Archives/edgar/data/{int(cik)}/{acc}/{accession}-index.htm")
+        if r is not None:
+            found = exhibits_from_index(r.text, prefix)
+            if found:
+                return found
+        names = self.filing_files(cik, accession)   # fallback: guess from file names
+        return [n for n in names if re.search(r"(?i)(ex|exhibit|exh)[-_ ]?99|99[-_.]?1", n)
+                and n.lower().endswith((".htm", ".html", ".txt")) and not re.match(r"(?i)R\d+\.htm", n)]
+
     def document_text(self, cik: int, accession: str, filename: str, max_chars: int = 200_000) -> str:
         acc = accession.replace("-", "")
         r = self.get(f"{self.BASE}/Archives/edgar/data/{int(cik)}/{acc}/{filename}")
         if r is None:
             return ""
         return html_to_text(r.text)[:max_chars]
+
+
+def exhibits_from_index(html: str, prefix: str = "EX-99") -> list[str]:
+    """Parse an EDGAR filing index page: rows are Seq | Description | Document | Type | Size."""
+    out = []
+    for row in re.findall(r"(?is)<tr[^>]*>(.*?)</tr>", html):
+        cells = re.findall(r"(?is)<td[^>]*>(.*?)</td>", row)
+        if len(cells) < 4:
+            continue
+        href = re.search(r'(?i)href="([^"]+)"', cells[2])
+        kind = re.sub(r"<[^>]+>|\s+", "", cells[3]).upper()
+        if href and kind.startswith(prefix.upper()):
+            name = href.group(1).split("/")[-1].split("?")[0]
+            if name.lower().endswith((".htm", ".html", ".txt")) and name not in out:
+                out.append(name)
+    return out
 
 
 _TAG = re.compile(r"<[^>]+>")

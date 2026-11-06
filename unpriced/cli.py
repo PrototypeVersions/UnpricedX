@@ -177,6 +177,35 @@ def cmd_llm_check(args) -> None:
                       "rule": reader.rule_guidance(text)[0], "usage": a.get("usage")}))
 
 
+def cmd_sec_text_check(args) -> None:
+    """Re-fetch the text of earnings releases the AI reader called 'unclear' and report how much
+    press-release text is now found. Reads SEC only; makes no AI calls and writes no record."""
+    from types import SimpleNamespace
+    from . import store
+    from .data.sec import SecClient
+    from .llm import reader
+    rec = reader.records()
+    rec = rec[rec["guidance"] == "unclear"].head(args.n)
+    f = store.read("sec_filings").drop_duplicates("accession").set_index("accession")
+    sec = SecClient()
+    rows = []
+    for r in rec.itertuples():
+        if r.accession not in f.index:
+            continue
+        x = f.loc[r.accession]
+        row = SimpleNamespace(cik=x["cik"], accession=r.accession, primary_doc=x.get("primary_doc"), form=r.form)
+        text = reader.filing_text(sec, row)
+        rows.append({"ticker": r.ticker, "before": int(getattr(r, "chars", 0) or 0), "after": len(text),
+                     "exhibits": sec.exhibits(row.cik, row.accession),
+                     "mentionsGuidance": bool(__import__("re").search(r"(?i)guidance|outlook", text))})
+    for row in rows:
+        print(json.dumps(row))
+    if rows:
+        print(json.dumps({"checked": len(rows), "medianBefore": sorted(r["before"] for r in rows)[len(rows) // 2],
+                          "medianAfter": sorted(r["after"] for r in rows)[len(rows) // 2],
+                          "withGuidanceWords": sum(r["mentionsGuidance"] for r in rows)}))
+
+
 def cmd_power(args) -> None:
     """Expected weeks of live data before a confidence sequence can confirm an IC of a given size."""
     import numpy as np
@@ -211,6 +240,9 @@ def main(argv=None) -> None:
     sub.add_parser("site").set_defaults(fn=cmd_site)
     sub.add_parser("sec").set_defaults(fn=cmd_sec)
     sub.add_parser("llm-check").set_defaults(fn=cmd_llm_check)
+    stc = sub.add_parser("sec-text-check")
+    stc.add_argument("--n", type=int, default=40)
+    stc.set_defaults(fn=cmd_sec_text_check)
     v = sub.add_parser("verify")
     v.add_argument("--base", default=None)
     v.set_defaults(fn=cmd_verify)

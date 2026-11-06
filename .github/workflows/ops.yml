@@ -8,6 +8,7 @@ name: Ops request
 #   {"command": "site"}
 #   {"command": "sec"}                            refresh SEC filings and fundamentals only
 #   {"command": "llm-check"}                      one test reading of a made-up release (writes no record)
+#   {"command": "sec-text-check"}                 re-fetch text of 'unclear' readings to check exhibits are found
 # The request moves to ops/done/ with the tail of the log, so whoever asked can read the result.
 on:
   push:
@@ -74,6 +75,7 @@ jobs:
               site)      run="python -m unpriced.cli site" ;;
               sec)       run="python -m unpriced.cli sec && python -m unpriced.cli site" ;;
               llm-check) run="python -m unpriced.cli llm-check" ;;
+              sec-text-check) run="python -m unpriced.cli sec-text-check" ;;
               *)         run="echo unknown command $cmd; false" ;;
             esac
             set -o pipefail
