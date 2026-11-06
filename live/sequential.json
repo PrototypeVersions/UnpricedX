@@ -1,5 +1,128 @@
 {
-  "comparisons": {},
-  "skill": {},
+  "comparisons": {
+    "gbm_all-d90c9d52": {
+      "vs": "ens_all-c3743f03",
+      "n": 0,
+      "verdict": "undecided",
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      },
+      "sessions": []
+    },
+    "gbm_all_h21-h5-d90c9d52": {
+      "vs": "ens_all-c3743f03",
+      "n": 0,
+      "verdict": "undecided",
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      },
+      "sessions": []
+    },
+    "gbm_all_h21-no_momentum-cb6b5463": {
+      "vs": "ens_all-c3743f03",
+      "n": 0,
+      "verdict": "undecided",
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      },
+      "sessions": []
+    },
+    "gbm_price-271869db": {
+      "vs": "ens_all-c3743f03",
+      "n": 0,
+      "verdict": "undecided",
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      },
+      "sessions": []
+    }
+  },
+  "skill": {
+    "ens_all-c3743f03": {
+      "n": 0,
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "verdict": "undecided",
+      "sessions": [],
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      }
+    },
+    "gbm_all-d90c9d52": {
+      "n": 0,
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "verdict": "undecided",
+      "sessions": [],
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      }
+    },
+    "gbm_all_h21-h5-d90c9d52": {
+      "n": 0,
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "verdict": "undecided",
+      "sessions": [],
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      }
+    },
+    "gbm_all_h21-no_momentum-cb6b5463": {
+      "n": 0,
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "verdict": "undecided",
+      "sessions": [],
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      }
+    },
+    "gbm_price-271869db": {
+      "n": 0,
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "verdict": "undecided",
+      "sessions": [],
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      }
+    }
+  },
   "events": []
 }
