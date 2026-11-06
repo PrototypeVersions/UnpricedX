@@ -2,22 +2,21 @@
 
 GitHub ran the `timezone:`-annotated crons as UTC, so an "18:23 ET" attempt fired before the close.
 """
+import re
 from pathlib import Path
-
-import yaml
 
 WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "daily.yml"
 
 
 def _schedule():
-    doc = yaml.safe_load(WORKFLOW.read_text())
-    on = doc.get("on", doc.get(True))  # YAML 1.1 reads a bare `on` key as True
-    return on["schedule"]
+    # Plain-text parse (no YAML dependency): every `- cron: '...'` line in the workflow.
+    crons = re.findall(r"^\s*-\s*cron:\s*'([^']+)'", WORKFLOW.read_text(), re.M)
+    assert crons, "no cron lines found"
+    return [{"cron": c} for c in crons]
 
 
 def test_daily_crons_are_utc_without_timezone_key():
-    for entry in _schedule():
-        assert "timezone" not in entry, entry
+    assert not re.search(r"^\s*timezone:", WORKFLOW.read_text(), re.M)
 
 
 def test_evening_attempts_after_cutoff_in_both_est_and_edt():
