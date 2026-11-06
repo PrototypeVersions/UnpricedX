@@ -1,20 +1,19 @@
 name: Daily cycle
 
-# Start after the session cutoff, with overnight and morning retries. GitHub can delay
-# cron jobs by hours: the first timely run freezes the forecast; later runs are no-ops.
-# A missed next-open deadline fails visibly; it never shifts the forecast's target.
+# Start after the session cutoff (17:30 ET), with evening, overnight and morning retries.
+# Crons are in UTC: GitHub ignored `timezone:` here and ran these as UTC times, so the
+# "18:23 ET" attempt fired at 13:23 ET, before the close. ET = UTC-5 (EST) or UTC-4 (EDT).
+# GitHub can delay cron jobs by hours: the first timely run freezes the forecast; later runs
+# are no-ops. A missed next-open deadline fails visibly; it never shifts the forecast's target.
 on:
   schedule:
-    - cron: '23 18,20 * * 1-5'
-      timezone: 'America/New_York'
-    - cron: '23 2 * * 2-6'
-      timezone: 'America/New_York'
-    - cron: '10 6 * * *'
-      timezone: 'America/New_York'
-    - cron: '10 7 * * *'
-      timezone: 'America/New_York'
-    - cron: '20 8 * * *'
-      timezone: 'America/New_York'
+    - cron: '40 22 * * 1-5'   # 17:40 EST / 18:40 EDT
+    - cron: '40 23 * * 1-5'   # 18:40 EST / 19:40 EDT
+    - cron: '10 1 * * 2-6'    # 20:10 EST / 21:10 EDT
+    - cron: '10 4 * * 2-6'    # 23:10 EST / 00:10 EDT
+    - cron: '10 8 * * *'      # 03:10 EST / 04:10 EDT
+    - cron: '20 11 * * *'     # 06:20 EST / 07:20 EDT
+    - cron: '50 12 * * *'     # 07:50 EST / 08:50 EDT
   workflow_dispatch:
     inputs:
       force:

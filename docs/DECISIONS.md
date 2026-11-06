@@ -159,3 +159,13 @@ Prompted by an outside review (GPT, author of UnpricedZ). All points below were 
   reading contributes 0 to the guidance challengers, so the Nov 5 forecast's AI and rule challengers
   simply had less coverage than intended; no champion, benchmark or portfolio forecast was affected.
   Those filings are not re-read. The prompt is unchanged (`guidance-1`).
+
+## 2026-11-06: daily-cycle schedule written in UTC
+GitHub ran the daily workflow's `timezone: America/New_York` crons as UTC times. The intended
+18:23 and 20:23 ET evening attempts fired at 13:23 and 15:23 ET (before the close, so no-ops), and
+the first real evening attempt was "02:23", which ran at 21:23 ET plus queue delay. On 2026-11-05 the
+forecast was frozen at 19:16 ET only because the evening check dispatched the cycle by hand. The crons
+are now plain UTC times, with ET equivalents in comments, giving attempts from 17:40 ET onward.
+Timing only: no forecast, rule, gate or frozen file changed. The cycle's own deadline check is unchanged.
+The Hub's `hub.yml` uses the same `timezone:` form and probably has the same problem; that is the Hub's
+repository to fix.
