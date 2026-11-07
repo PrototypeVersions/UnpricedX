@@ -1,0 +1,2 @@
+{"at": "2026-11-07T14:54:26-05:00", "spec": "ridge_all", "seed": 1794081243, "dataSig": "events,fundamentals,liquidity,momentum,reversal,risk,valuation", "icMean": -0.00027184922639415397, "icT": -0.521715131754115, "netAnnual": -0.03530586138367653, "passed": false}
+{"at": "2026-11-07T14:54:49-05:00", "spec": "gbm_all", "seed": 1794081243, "dataSig": "events,fundamentals,liquidity,momentum,reversal,risk,valuation", "icMean": 0.0001888261577218187, "icT": 0.35185398226649683, "netAnnual": -0.0707172229886055, "passed": false}
