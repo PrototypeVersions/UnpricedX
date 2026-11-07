@@ -3,3 +3,8 @@
 {"session": "2026-11-03", "entry": "2026-11-04", "model": "gbm_price-271869db", "role": "challenger", "horizon": 1, "n": 1000, "ic": -0.196621, "spread": -0.049764, "topExcess": -0.0417, "universeMean": -0.002253}
 {"session": "2026-11-03", "entry": "2026-11-04", "model": "gbm_all_h21-h5-d90c9d52", "role": "challenger", "horizon": 1, "n": 1000, "ic": -0.196621, "spread": -0.049764, "topExcess": -0.0417, "universeMean": -0.002253}
 {"session": "2026-11-03", "entry": "2026-11-04", "model": "gbm_all_h21-no_momentum-cb6b5463", "role": "challenger", "horizon": 1, "n": 1000, "ic": 0.009045, "spread": 0.015055, "topExcess": -0.003244, "universeMean": -0.002253}
+{"session": "2026-11-04", "entry": "2026-11-05", "model": "ens_all-c3743f03", "role": "champion", "horizon": 1, "n": 1000, "ic": 0.176318, "spread": 0.019213, "topExcess": 0.01016, "universeMean": -0.03823}
+{"session": "2026-11-04", "entry": "2026-11-05", "model": "gbm_all-d90c9d52", "role": "challenger", "horizon": 1, "n": 1000, "ic": 0.16707, "spread": 0.019993, "topExcess": 0.011188, "universeMean": -0.03823}
+{"session": "2026-11-04", "entry": "2026-11-05", "model": "gbm_price-271869db", "role": "challenger", "horizon": 1, "n": 1000, "ic": 0.16707, "spread": 0.019993, "topExcess": 0.011188, "universeMean": -0.03823}
+{"session": "2026-11-04", "entry": "2026-11-05", "model": "gbm_all_h21-h5-d90c9d52", "role": "challenger", "horizon": 1, "n": 1000, "ic": 0.16707, "spread": 0.019993, "topExcess": 0.011188, "universeMean": -0.03823}
+{"session": "2026-11-04", "entry": "2026-11-05", "model": "gbm_all_h21-no_momentum-cb6b5463", "role": "challenger", "horizon": 1, "n": 1000, "ic": 0.034754, "spread": -0.003343, "topExcess": 0.001757, "universeMean": -0.03823}
