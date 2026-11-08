@@ -10,6 +10,7 @@ evaluated by the lab like any other experiment and count toward the trial total.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import warnings
 from typing import Callable
 
 import numpy as np
@@ -336,6 +337,95 @@ def sales_to_price(ctx):
 @feature("log_mcap", "valuation", -1, "Log market capitalization (size).", "Banz (1981)")
 def log_mcap(ctx):
     return np.log(_mcap(ctx).where(lambda x: x > 0))
+
+
+# ---------------------------------------------------------------- news vs. no-news returns (SEC filings)
+# Own family ("news"), so that adding it does not change the feature set of any existing model.
+NEWS_FORMS = ["8-K", "8-K/A", "10-Q", "10-K"]
+
+
+def _news_days(ctx: Context) -> pd.DataFrame | None:
+    """1 on a stock's filing reaction session and the session after it (delayed reactions), else 0.
+    NaN for stocks with no filing in the past 252 sessions (no evidence the stock is covered)."""
+    key = "news_days"
+    if key in ctx.extras:
+        return ctx.extras[key]
+    out = None
+    if not ctx.filings.empty:
+        f = ctx.filings[ctx.filings["form"].isin(NEWS_FORMS) & ctx.filings["ticker"].isin(set(ctx.tickers))]
+        arr = np.zeros((len(ctx.dates), len(ctx.tickers)))
+        if len(f):
+            rows = ctx.dates.get_indexer(pd.to_datetime(f["session"]))
+            cols = ctx.tickers.get_indexer(f["ticker"])
+            ok = (rows >= 0) & (cols >= 0)
+            arr[rows[ok], cols[ok]] = 1.0
+        ind = pd.DataFrame(arr, index=ctx.dates, columns=ctx.tickers)
+        covered = ind.rolling(252, min_periods=1).sum() > 0
+        out = ((ind + ind.shift(1).fillna(0)) > 0).astype(float).where(covered)
+    ctx.extras[key] = out
+    return out
+
+
+@feature("ret_1w_nonews", "news", -1,
+         "Return over the last week counting only sessions without an SEC filing (no-news reversal).",
+         "Chan (2003); Jiang, Li & Wang (2021)")
+def ret_1w_nonews(ctx):
+    nd = _news_days(ctx)
+    if nd is None:
+        return _px(ctx) * np.nan
+    lr = np.log1p(_ret(ctx))
+    quiet = lr.where(nd == 0, 0.0).where(lr.notna() & nd.notna())
+    return quiet.rolling(5, min_periods=4).sum()
+
+
+@feature("news_ret_1m", "news", +1,
+         "Market-adjusted return on filing sessions over the last month (drift after news).",
+         "Chan (2003); Jiang, Li & Wang (2021)")
+def news_ret_1m(ctx):
+    nd = _news_days(ctx)
+    if nd is None:
+        return _px(ctx) * np.nan
+    ab = np.log1p(_ret(ctx)).sub(np.log1p(ctx.market_ret.reindex(ctx.dates)), axis=0)
+    loud = ab.where(nd == 1, 0.0).where(ab.notna() & nd.notna())
+    return loud.rolling(21, min_periods=15).sum()
+
+
+# ---------------------------------------------------------------- return seasonality (prices)
+@feature("season_amn", "seasonal", +1,
+         "Average return in the coming calendar month over past years minus the average in other months "
+         "(years 1-10, cross-sectionally demeaned).",
+         "Heston & Sadka (2008); Keloharju, Linnainmaa & Nyberg (2021)")
+def season_amn(ctx):
+    p = _px(ctx)
+    # monthly returns of completed months, demeaned across stocks each month
+    mret = p.resample("ME").last().pct_change(fill_method=None)
+    inuni = ctx.member["research"].reindex(columns=mret.columns).astype("float64").resample("ME").last() > 0
+    mret = mret.sub(mret.where(inuni).mean(axis=1), axis=0)     # point-in-time universe, so no look-ahead
+    mv = mret.to_numpy(dtype="float64")
+    months = mret.index.to_period("M")
+    n = len(months)
+    amn = np.full((n + 1, mv.shape[1]), np.nan)
+    for j in range(n + 1):                       # j = index of the target month (n = month after the data)
+        ann = [j - 12 * k for k in range(1, 11) if j - 12 * k >= 1]
+        if len(ann) < 3:
+            continue
+        other = [i for i in range(max(1, j - 120), j - 12) if (j - i) % 12 != 0]
+        a = mv[ann]
+        o = mv[other]
+        na, no = np.sum(~np.isnan(a), axis=0), np.sum(~np.isnan(o), axis=0)
+        if not len(other):
+            continue
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            val = np.where((na >= 3) & (no >= 24), np.nanmean(a, axis=0) - np.nanmean(o, axis=0), np.nan)
+        amn[j] = val
+    target = (ctx.dates + pd.Timedelta(days=4)).to_period("M")   # month in which most of the 5-day holding falls
+    first = months[0]
+    pos = np.array([(t - first).n for t in target])
+    out = np.full((len(ctx.dates), mv.shape[1]), np.nan)
+    ok = (pos >= 0) & (pos < amn.shape[0])
+    out[ok] = amn[pos[ok]]
+    return pd.DataFrame(out, index=ctx.dates, columns=mret.columns)
 
 
 def compute(ctx: Context, names: list[str]) -> dict[str, pd.DataFrame]:

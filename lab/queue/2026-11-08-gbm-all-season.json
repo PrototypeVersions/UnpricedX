@@ -1,0 +1,19 @@
+{
+ "name": "gbm_all_season",
+ "kind": "gbm",
+ "families": [
+  "momentum",
+  "reversal",
+  "risk",
+  "liquidity",
+  "events",
+  "fundamentals",
+  "valuation"
+ ],
+ "features": [
+  "season_amn"
+ ],
+ "horizon": 5,
+ "notes": "Hypothesis: stocks that did well relative to others in a given calendar month tend to do so again in that month, and correspondingly worse in other months (Heston & Sadka 2008, JFE 87:418-445; Keloharju, Linnainmaa & Nyberg 2021, JFE 139:138-161, whose same-month-minus-other-months factor has t = 9.9 over 1963-2016 and was positive in every 10-year window). season_amn uses only completed months 1-10 years back and is unrelated to every existing feature (none uses calendar position). It changes once a month, so it can help the model hold or time names rather than add weekly turnover; KLN note seasonalities are too high-turnover to trade alone but useful for timing trades. Comparison: identical to the pre-registered gbm_all except for this feature (new 'seasonal' family). Expected effect: small IC gain (published monthly spreads imply a 5-day IC well under 0.01) with no increase in turnover. Risk: post-publication decay and survivor-only Yahoo history.",
+ "proposedBy": "ai-research-2026-11-08"
+}
