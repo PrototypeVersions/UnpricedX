@@ -1,54 +1,54 @@
 {
-  "session": "2026-11-06",
-  "startedAt": "2026-11-06T19:09:25-05:00",
+  "session": "2026-11-09",
+  "startedAt": "2026-11-09T17:45:55-05:00",
   "prices": {
     "requested": 1067,
     "new": 0,
-    "refetched": 7,
-    "appended": 1060,
+    "refetched": 0,
+    "appended": 1066,
     "failed": [],
-    "rows": 16683217,
-    "lastDate": "2026-11-06"
+    "rows": 16705859,
+    "lastDate": "2026-11-09"
   },
   "sec": {
     "enabled": true,
     "mode": "daily",
     "indexDays": {
       "read": [
-        "2026-11-05"
+        "2026-11-06"
       ],
       "absent": [],
       "pending": [
-        "2026-11-06"
+        "2026-11-09"
       ]
     },
-    "submissions": 204,
-    "facts": 135,
-    "fundamentalRows": 103453,
-    "at": "2026-11-06T19:21:55-05:00"
+    "submissions": 101,
+    "facts": 71,
+    "fundamentalRows": 103881,
+    "at": "2026-11-09T17:55:11-05:00"
   },
-  "coverage": 1.0,
+  "coverage": 0.999,
   "llm": {
     "enabled": true,
-    "eligible": 150,
-    "read": 150,
+    "eligible": 106,
+    "read": 106,
     "deferredForTime": 0,
-    "inputTokens": 2443653,
-    "outputTokens": 51795,
+    "inputTokens": 1613830,
+    "outputTokens": 36157,
     "model": "claude-haiku-5-5",
     "promptVersion": "guidance-1"
   },
-  "newScores": 5,
+  "newScores": 7,
   "promotion": {
     "events": []
   },
   "snapshot": {
-    "session": "2026-11-06",
-    "file": "live/snapshots/2026/2026-11-06.json.gz",
-    "sha256": "10b94ceba37a63349c3bdcec5f07a4de3fd107ca9133b93141203195b7495d37",
-    "prevHash": "80bc8b89fc469da1a8255c47b8884ca481ea21764c85f0007d15c32af3368f05",
-    "decidedAt": "2026-11-06T19:27:23-05:00",
-    "entrySession": "2026-11-09"
+    "session": "2026-11-09",
+    "file": "live/snapshots/2026/2026-11-09.json.gz",
+    "sha256": "69b3d4d89f5423dd59c1ea62133dee628a1cd3a3825468a243fac8d096dbf0bd",
+    "prevHash": "10b94ceba37a63349c3bdcec5f07a4de3fd107ca9133b93141203195b7495d37",
+    "decidedAt": "2026-11-09T17:59:25-05:00",
+    "entrySession": "2026-11-10"
   },
   "trades": 0,
   "status": "published"
