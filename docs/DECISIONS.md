@@ -185,3 +185,10 @@ repository to fix.
 - **Bug fix found on the way (`models.fit`).** A gbm fit crashed when a feature had values only in the
   validation block (all-missing in the training part). Such features are now dropped from that fit. Any fit
   that worked before is unchanged; no live forecast was affected (a crash would have been visible).
+
+## 2026-11-11: no repository links on the site; dates shown in New York time
+- **Site.** At the owner's request the site no longer links to the GitHub repository. The forecast file's
+  details (path, lock-in time, full SHA-256 and how the hash chain works) open in a popup instead.
+- **Dates.** Timestamps are now shown in New York time for every viewer; previously a viewer outside US
+  time zones could see the evening's lock-in date as the next day. Display only.
+- **Not changed:** gates, eras, promotion, portfolio rules, holdout, any frozen file.

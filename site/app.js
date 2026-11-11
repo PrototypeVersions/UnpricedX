@@ -13,8 +13,24 @@
   const dateFmt = (s) => {
     if (!s) return "–";
     const d = new Date(String(s).length <= 10 ? `${s}T12:00:00` : s);
-    return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", ...(String(s).length > 10 ? { timeZone: "America/New_York" } : {}) });
   };
+
+  function popup(title, html) {
+    let d = document.getElementById("popup");
+    if (!d) {
+      d = document.createElement("dialog");
+      d.id = "popup";
+      d.innerHTML = `<div class="popup-head"><h2 id="popup-title"></h2><button type="button" class="popup-close" aria-label="Close">×</button></div><div id="popup-body"></div>`;
+      d.setAttribute("aria-labelledby", "popup-title");
+      document.body.appendChild(d);
+      d.querySelector(".popup-close").addEventListener("click", () => d.close());
+      d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
+    }
+    d.querySelector("#popup-title").textContent = title;
+    d.querySelector("#popup-body").innerHTML = html;
+    d.showModal();
+  }
 
   async function load(name) {
     try {
@@ -284,7 +300,7 @@
     el.innerHTML = `
       <h1>Today's forecasts</h1>
       <p class="lede">The current model's ranking for the ${m.horizon} trading days starting at the ${esc(dateFmt(f.entrySession))} open.</p>
-      <p class="small muted">Locked in ${esc(dateFmt(f.decidedAt))} at ${esc(new Date(f.decidedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }))} ET using data through ${esc(dateFmt(f.session))}. File <a href="https://github.com/PrototypeVersions/UnpricedX/blob/main/${esc(f.file)}">${esc(f.file.split("/").pop())}</a>, SHA-256 ${esc(f.sha256.slice(0, 16))}…</p>
+      <p class="small muted">Locked in ${esc(dateFmt(f.decidedAt))} at ${esc(new Date(f.decidedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }))} ET using data through ${esc(dateFmt(f.session))}. File <button type="button" class="linkish" id="fc-file">${esc(f.file.split("/").pop())}</button>, SHA-256 ${esc(f.sha256.slice(0, 16))}…</p>
       <div class="note"><p>A rank says which stocks the model expects to do better <em>than the others</em>, not whether any will go up. Most of the time the honest answer is "only slightly": the probabilities below are calibrated on years the model never trained on, and they rarely stray far from 50%.</p></div>
       <div class="controls">
         <input type="search" id="fc-search" placeholder="Find a ticker or company" aria-label="Find a ticker or company">
@@ -297,6 +313,16 @@
       <h2>Challengers' top picks</h2>
       <p class="muted">The models being tested alongside the current one make the same kind of forecast, and they are graded exactly the same way.</p>
       <div id="fc-ch"></div>`;
+    $("#fc-file").addEventListener("click", () => popup("The locked-in forecast file", `
+      <dl class="kv">
+        <dt>File</dt><dd><code class="hash">${esc(f.file)}</code></dd>
+        <dt>Locked in</dt><dd>${esc(new Date(f.decidedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/New_York" }))}, ${esc(new Date(f.decidedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }))} ET</dd>
+        <dt>Data through</dt><dd>${esc(dateFmt(f.session))}</dd>
+        <dt>Enters at</dt><dd>the ${esc(dateFmt(f.entrySession))} open</dd>
+        <dt>SHA-256</dt><dd><code class="hash">${esc(f.sha256)}</code></dd>
+      </dl>
+      <p>Each night's forecast is written to a compressed file and never changed afterwards. Its SHA-256 fingerprint is added to a chain in which every entry also includes the previous entry's fingerprint, so editing or deleting any past forecast would break every later link. An automatic check refuses any change to these files, and the independent scorekeeper keeps its own copy with the time it received it.</p>
+      <p class="small muted">The full ranking in this file is the table on this page.</p>`));
     const cols = [
       { h: "Rank", k: "rank", f: (r) => r.rank },
       { h: "Ticker", k: "ticker", l: true, f: (r) => `<span class="ticker">${esc(r.ticker)}</span>` },
