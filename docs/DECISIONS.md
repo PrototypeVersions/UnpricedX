@@ -169,3 +169,19 @@ are now plain UTC times, with ET equivalents in comments, giving attempts from 1
 Timing only: no forecast, rule, gate or frozen file changed. The cycle's own deadline check is unchanged.
 The Hub's `hub.yml` uses the same `timezone:` form and probably has the same problem; that is the Hub's
 repository to fix.
+
+## 2026-11-08: two research features in new families (proposal, PR from the weekly research session)
+- **What.** `news` (`ret_1w_nonews`, `news_ret_1m`: last week's return on sessions without an SEC filing,
+  and last month's market-adjusted return on filing sessions) and `seasonal` (`season_amn`: same calendar
+  month minus other months, years 1–10). Two queued specs, `gbm_all_news` and `gbm_all_season`, each equal
+  to the pre-registered `gbm_all` plus the new features. Two new trials.
+- **Why new families.** Adding a feature to an existing family would silently change the features of the
+  champion and every challenger at the next refit. In new families no existing model changes (checked:
+  every metrics-v4 ledger entry keeps its `effSig`).
+- **Side effect.** The data signature gains `news,seasonal`, so the first sweep after merge re-scores the
+  pre-registered specs on it (re-scores, not new trials) and gives the provisional champion its usual
+  holdout look on the new signature (same model, so the holdout look count does not rise; it uses one of the
+  three weekly slots).
+- **Bug fix found on the way (`models.fit`).** A gbm fit crashed when a feature had values only in the
+  validation block (all-missing in the training part). Such features are now dropped from that fit. Any fit
+  that worked before is unchanged; no live forecast was affected (a crash would have been visible).
