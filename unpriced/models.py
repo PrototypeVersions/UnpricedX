@@ -152,6 +152,9 @@ def fit(spec: dict, train: pd.DataFrame, seed: int = 0, cache: dict | None = Non
         purge_before = cut - pd.tseries.offsets.BDay(h + 2)   # labels of these rows would overlap validation
         tr = data[data["date"] < purge_before]
         va = data[data["date"] >= cut]
+        # a feature that starts inside the validation block has no values in `tr`; the binner cannot
+        # handle an all-missing column, so drop it (fits that worked before are unchanged)
+        avail = [f for f in avail if tr[f].notna().any()]
         msl = int(p["min_samples_leaf"]) or max(200, len(tr) // 400)
         model = HistGradientBoostingRegressor(
             loss="squared_error", learning_rate=float(p["learning_rate"]), max_leaf_nodes=int(p["max_leaf_nodes"]),

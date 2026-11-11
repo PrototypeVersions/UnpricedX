@@ -1,0 +1,20 @@
+{
+ "name": "gbm_all_news",
+ "kind": "gbm",
+ "families": [
+  "momentum",
+  "reversal",
+  "risk",
+  "liquidity",
+  "events",
+  "fundamentals",
+  "valuation"
+ ],
+ "features": [
+  "ret_1w_nonews",
+  "news_ret_1m"
+ ],
+ "horizon": 5,
+ "notes": "Hypothesis: short-term reversal (the lab's strongest single signal, ret_1w) mixes two kinds of moves. Moves without public news are mostly liquidity-driven and reverse; moves on news days are information and drift (Chan 2003, JFE 70:223-260; Jiang, Li & Wang 2021, JFE 141:573-599). Splitting last week's return into a no-news part (sessions without an SEC 8-K/10-Q/10-K, sign -1) and a one-month news-day drift part (sign +1) should give the model a purer reversal signal. Comparison: identical to the pre-registered gbm_all except for these two features (new 'news' family, so no existing model changes). Expected effect: higher development IC than gbm_all (0.0187) and more of the gross long-short surviving costs, because fewer trades are spent fading news moves that keep going. SEC filings are only firm-issued news, so the split is noisy and the effect may be small.",
+ "proposedBy": "ai-research-2026-11-08"
+}
