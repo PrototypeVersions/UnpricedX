@@ -169,3 +169,10 @@ are now plain UTC times, with ET equivalents in comments, giving attempts from 1
 Timing only: no forecast, rule, gate or frozen file changed. The cycle's own deadline check is unchanged.
 The Hub's `hub.yml` uses the same `timezone:` form and probably has the same problem; that is the Hub's
 repository to fix.
+
+## 2026-11-11: no repository links on the site; dates shown in New York time
+- **Site.** At the owner's request the site no longer links to the GitHub repository. The forecast file's
+  details (path, lock-in time, full SHA-256 and how the hash chain works) open in a popup instead.
+- **Dates.** Timestamps are now shown in New York time for every viewer; previously a viewer outside US
+  time zones could see the evening's lock-in date as the next day. Display only.
+- **Not changed:** gates, eras, promotion, portfolio rules, holdout, any frozen file.
