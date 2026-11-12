@@ -8,3 +8,17 @@
 {"session": "2026-11-04", "ticker": "MU", "side": "BUY", "dollars": 99.936, "price": 823.0, "costDollars": 0.06, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-03"}
 {"session": "2026-11-04", "ticker": "TER", "side": "BUY", "dollars": 99.936, "price": 264.73999, "costDollars": 0.06, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-03"}
 {"session": "2026-11-04", "ticker": "AMD", "side": "BUY", "dollars": 99.936, "price": 485.25, "costDollars": 0.06, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-03"}
+{"session": "2026-11-11", "ticker": "ALAB", "side": "SELL", "dollars": 106.3548, "price": 231.970001, "costDollars": 0.1808, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "EAT", "side": "BUY", "dollars": 100.6845, "price": 193.270004, "costDollars": 0.1007, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "NTAP", "side": "BUY", "dollars": 100.6845, "price": 183.889999, "costDollars": 0.1007, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "MRVL", "side": "SELL", "dollars": 100.9157, "price": 166.880005, "costDollars": 0.1716, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "TER", "side": "SELL", "dollars": 100.0153, "price": 264.950012, "costDollars": 0.17, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "CRWD", "side": "BUY", "dollars": 100.6845, "price": 235.354996, "costDollars": 0.0604, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "GLW", "side": "SELL", "dollars": 97.6967, "price": 119.540001, "costDollars": 0.1661, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "ASX", "side": "SELL", "dollars": 97.0807, "price": 37.400002, "costDollars": 0.165, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "VLO", "side": "BUY", "dollars": 100.6845, "price": 357.170013, "costDollars": 0.0604, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "CAT", "side": "BUY", "dollars": 100.6845, "price": 600.700012, "costDollars": 0.0604, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "NVDA", "side": "BUY", "dollars": 100.6845, "price": 172.720001, "costDollars": 0.0604, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "WDC", "side": "SELL", "dollars": 92.4294, "price": 308.320007, "costDollars": 0.1571, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "AMD", "side": "SELL", "dollars": 111.8418, "price": 543.059998, "costDollars": 0.1901, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-11", "ticker": "MPC", "side": "BUY", "dollars": 100.6845, "price": 395.950012, "costDollars": 0.0604, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}

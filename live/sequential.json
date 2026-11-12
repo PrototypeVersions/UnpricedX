@@ -1,6 +1,42 @@
 {
   "comparisons": {
+    "factor_ret_1w-5b09bb5d": {
+      "vs": "ens_all-c3743f03",
+      "n": 0,
+      "verdict": "undecided",
+      "mean": null,
+      "lower": null,
+      "upper": null,
+      "path": {
+        "mean": [],
+        "lower": [],
+        "upper": []
+      },
+      "sessions": []
+    },
     "gbm_all-d90c9d52": {
+      "vs": "ens_all-c3743f03",
+      "n": 1,
+      "verdict": "undecided",
+      "mean": -0.0012430000000000002,
+      "lower": -0.6225453066081543,
+      "upper": 0.6200593066081543,
+      "path": {
+        "mean": [
+          -0.0012430000000000002
+        ],
+        "lower": [
+          -0.6225453066081543
+        ],
+        "upper": [
+          0.6200593066081543
+        ]
+      },
+      "sessions": [
+        "2026-11-03"
+      ]
+    },
+    "gbm_all_h21-60eeb02c": {
       "vs": "ens_all-c3743f03",
       "n": 0,
       "verdict": "undecided",
@@ -16,45 +52,69 @@
     },
     "gbm_all_h21-h5-d90c9d52": {
       "vs": "ens_all-c3743f03",
-      "n": 0,
+      "n": 1,
       "verdict": "undecided",
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "mean": -0.0012430000000000002,
+      "lower": -0.6225453066081543,
+      "upper": 0.6200593066081543,
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          -0.0012430000000000002
+        ],
+        "lower": [
+          -0.6225453066081543
+        ],
+        "upper": [
+          0.6200593066081543
+        ]
       },
-      "sessions": []
+      "sessions": [
+        "2026-11-03"
+      ]
     },
     "gbm_all_h21-no_momentum-cb6b5463": {
       "vs": "ens_all-c3743f03",
-      "n": 0,
+      "n": 1,
       "verdict": "undecided",
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "mean": 0.08806800000000001,
+      "lower": -0.5332343066081543,
+      "upper": 0.7093703066081544,
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          0.08806800000000001
+        ],
+        "lower": [
+          -0.5332343066081543
+        ],
+        "upper": [
+          0.7093703066081544
+        ]
       },
-      "sessions": []
+      "sessions": [
+        "2026-11-03"
+      ]
     },
     "gbm_price-271869db": {
       "vs": "ens_all-c3743f03",
-      "n": 0,
+      "n": 1,
       "verdict": "undecided",
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "mean": -0.0012430000000000002,
+      "lower": -0.6225453066081543,
+      "upper": 0.6200593066081543,
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          -0.0012430000000000002
+        ],
+        "lower": [
+          -0.6225453066081543
+        ],
+        "upper": [
+          0.6200593066081543
+        ]
       },
-      "sessions": []
+      "sessions": [
+        "2026-11-03"
+      ]
     },
     "llm_guidance-on-ens_all-c3743f03": {
       "vs": "ens_all-c3743f03",
@@ -87,6 +147,27 @@
   },
   "skill": {
     "ens_all-c3743f03": {
+      "n": 1,
+      "mean": -0.007288,
+      "lower": -0.6285903066081543,
+      "upper": 0.6140143066081544,
+      "verdict": "undecided",
+      "sessions": [
+        "2026-11-03"
+      ],
+      "path": {
+        "mean": [
+          -0.007288
+        ],
+        "lower": [
+          -0.6285903066081543
+        ],
+        "upper": [
+          0.6140143066081544
+        ]
+      }
+    },
+    "factor_ret_1w-5b09bb5d": {
       "n": 0,
       "mean": null,
       "lower": null,
@@ -100,6 +181,27 @@
       }
     },
     "gbm_all-d90c9d52": {
+      "n": 1,
+      "mean": -0.008531,
+      "lower": -0.6298333066081543,
+      "upper": 0.6127713066081544,
+      "verdict": "undecided",
+      "sessions": [
+        "2026-11-03"
+      ],
+      "path": {
+        "mean": [
+          -0.008531
+        ],
+        "lower": [
+          -0.6298333066081543
+        ],
+        "upper": [
+          0.6127713066081544
+        ]
+      }
+    },
+    "gbm_all_h21-60eeb02c": {
       "n": 0,
       "mean": null,
       "lower": null,
@@ -113,42 +215,66 @@
       }
     },
     "gbm_all_h21-h5-d90c9d52": {
-      "n": 0,
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "n": 1,
+      "mean": -0.008531,
+      "lower": -0.6298333066081543,
+      "upper": 0.6127713066081544,
       "verdict": "undecided",
-      "sessions": [],
+      "sessions": [
+        "2026-11-03"
+      ],
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          -0.008531
+        ],
+        "lower": [
+          -0.6298333066081543
+        ],
+        "upper": [
+          0.6127713066081544
+        ]
       }
     },
     "gbm_all_h21-no_momentum-cb6b5463": {
-      "n": 0,
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "n": 1,
+      "mean": 0.08078,
+      "lower": -0.5405223066081544,
+      "upper": 0.7020823066081543,
       "verdict": "undecided",
-      "sessions": [],
+      "sessions": [
+        "2026-11-03"
+      ],
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          0.08078
+        ],
+        "lower": [
+          -0.5405223066081544
+        ],
+        "upper": [
+          0.7020823066081543
+        ]
       }
     },
     "gbm_price-271869db": {
-      "n": 0,
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "n": 1,
+      "mean": -0.008531,
+      "lower": -0.6298333066081543,
+      "upper": 0.6127713066081544,
       "verdict": "undecided",
-      "sessions": [],
+      "sessions": [
+        "2026-11-03"
+      ],
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          -0.008531
+        ],
+        "lower": [
+          -0.6298333066081543
+        ],
+        "upper": [
+          0.6127713066081544
+        ]
       }
     },
     "llm_guidance-on-ens_all-c3743f03": {

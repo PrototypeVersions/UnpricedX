@@ -1,55 +1,55 @@
 {
-  "session": "2026-11-10",
-  "startedAt": "2026-11-10T19:09:42-05:00",
+  "session": "2026-11-11",
+  "startedAt": "2026-11-11T19:09:38-05:00",
   "prices": {
-    "requested": 1067,
+    "requested": 1066,
     "new": 0,
-    "refetched": 3,
-    "appended": 1064,
+    "refetched": 23,
+    "appended": 1042,
     "failed": [],
-    "rows": 16706926,
-    "lastDate": "2026-11-10"
+    "rows": 16707991,
+    "lastDate": "2026-11-11"
   },
   "sec": {
     "enabled": true,
     "mode": "daily",
     "indexDays": {
       "read": [
-        "2026-11-09"
+        "2026-11-10"
       ],
       "absent": [],
       "pending": [
-        "2026-11-10"
+        "2026-11-11"
       ]
     },
-    "submissions": 84,
-    "facts": 47,
-    "fundamentalRows": 103925,
-    "at": "2026-11-10T19:17:48-05:00"
+    "submissions": 53,
+    "facts": 13,
+    "fundamentalRows": 103937,
+    "at": "2026-11-11T19:21:35-05:00"
   },
-  "coverage": 0.999,
+  "coverage": 1.0,
   "llm": {
     "enabled": true,
-    "eligible": 34,
-    "read": 34,
+    "eligible": 10,
+    "read": 10,
     "deferredForTime": 0,
-    "inputTokens": 503349,
-    "outputTokens": 11254,
+    "inputTokens": 143593,
+    "outputTokens": 3434,
     "model": "claude-haiku-5-5",
     "promptVersion": "guidance-1"
   },
-  "newScores": 7,
+  "newScores": 13,
   "promotion": {
     "events": []
   },
   "snapshot": {
-    "session": "2026-11-10",
-    "file": "live/snapshots/2026/2026-11-10.json.gz",
-    "sha256": "a0fb5ebd7d253f3d06527bb66322930684c635153d60c156b28425a2d3f0056c",
-    "prevHash": "69b3d4d89f5423dd59c1ea62133dee628a1cd3a3825468a243fac8d096dbf0bd",
-    "decidedAt": "2026-11-10T19:19:16-05:00",
-    "entrySession": "2026-11-11"
+    "session": "2026-11-11",
+    "file": "live/snapshots/2026/2026-11-11.json.gz",
+    "sha256": "68290bc4a7e174b19dacecf25ddbd090b63462c19dd669881077e05f98dc47a3",
+    "prevHash": "a0fb5ebd7d253f3d06527bb66322930684c635153d60c156b28425a2d3f0056c",
+    "decidedAt": "2026-11-11T19:22:15-05:00",
+    "entrySession": "2026-11-12"
   },
-  "trades": 0,
+  "trades": 14,
   "status": "published"
 }
