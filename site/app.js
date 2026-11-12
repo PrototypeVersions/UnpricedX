@@ -557,12 +557,12 @@
       <div class="note"><p>A simple keyword rule reads the same documents, so the test is whether the AI adds anything a cheap rule can't. Each feeds its own shadow challenger (the champion's ranking, nudged up for raised guidance and down for lowered or withdrawn). Neither changes the champion or the paper portfolio unless it earns promotion like any other model.</p>
       <p>This is only judged live: a language model has read the internet up to its training cutoff, so testing it on older filings would let it remember what happened next. A reading only counts for forecasts frozen after it was finished, and is graded from the first market open after that.</p></div>`;
     if (!f.enabled && !f.count) {
-      html += `<p class="empty">Switched off. It starts automatically once an Anthropic API key and an SEC contact email are added to the repository's secrets.</p>`;
+      html += `<p class="empty">Not running yet. No filings have been read so far.</p>`;
       el.innerHTML = html;
       return;
     }
     const tok = isNum(f.inputTokens) ? `${Math.round((f.inputTokens + (f.outputTokens || 0)) / 1000).toLocaleString()}k tokens` : "–";
-    html += `<dl class="kv"><dt>Status</dt><dd>${f.enabled ? "reading every evening" : "paused (key or email missing)"}</dd><dt>Releases read</dt><dd>${f.count}${isNum(f.answered) ? ` (${f.answered} answered, ${f.count - f.answered} unclear)` : ""}</dd><dt>Model</dt><dd>${esc(f.model)} · prompt ${esc(f.promptVersion || "–")}</dd><dt>Usage</dt><dd>${tok}</dd></dl>`;
+    html += `<dl class="kv"><dt>Status</dt><dd>${f.enabled ? "reading every evening" : "paused"}</dd><dt>Releases read</dt><dd>${f.count}${isNum(f.answered) ? ` (${f.answered} answered, ${f.count - f.answered} unclear)` : ""}</dd><dt>Model</dt><dd>${esc(f.model)} · prompt ${esc(f.promptVersion || "–")}</dd><dt>Usage</dt><dd>${tok}</dd></dl>`;
     const ev = f.evaluation;
     if (ev && (ev.ai?.length || ev.rule?.length)) {
       const t = (rows) => table([
@@ -595,7 +595,7 @@
         <li><strong>No look-ahead.</strong> Every input is computed from information public before the forecast. Fundamentals count from the session after they were filed with the SEC. An automated test deletes the future and checks that no past input changes.</li>
         <li><strong>Every idea is counted.</strong> The lab's ledger records each experiment, passed or failed, and can only grow. The statistical bar rises with the count.</li>
         <li><strong>A sealed holdout.</strong> Recent years are kept out of development; looks at them are logged and limited.</li>
-        <li><strong>Frozen, fingerprinted forecasts.</strong> Each morning's forecast file is fingerprinted with SHA-256 and chained to the day before. Changing any past file breaks the chain, and a check runs on every change to the repository.</li>
+        <li><strong>Frozen, fingerprinted forecasts.</strong> Each morning's forecast file is fingerprinted with SHA-256 and chained to the day before. Changing any past file breaks the chain, and an automated check runs on every update.</li>
         <li><strong>Evidence that survives peeking.</strong> Live comparisons use confidence sequences, which stay valid however often they are checked, on non-overlapping weekly blocks. Decisions wait for at least 26 weeks.</li>
         <li><strong>Realistic trading.</strong> Orders fill at the first open after the forecast file exists, with costs that grow for less liquid stocks.</li>
         <li><strong>An independent record.</strong> A separate scorekeeper, <a href="${HUB}">UnpricedHub</a>, saves its own copy of each forecast with the time it received it, and grades it from its own price data. A forecast it receives after the open never counts as live.</li>
