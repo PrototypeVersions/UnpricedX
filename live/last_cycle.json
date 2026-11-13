@@ -1,40 +1,39 @@
 {
-  "session": "2026-11-11",
-  "startedAt": "2026-11-11T19:09:38-05:00",
+  "session": "2026-11-12",
+  "startedAt": "2026-11-12T19:09:23-05:00",
   "prices": {
-    "requested": 1066,
+    "requested": 1063,
     "new": 0,
-    "refetched": 23,
-    "appended": 1042,
+    "refetched": 0,
+    "appended": 1062,
     "failed": [],
-    "rows": 16707991,
-    "lastDate": "2026-11-11"
+    "rows": 16709053,
+    "lastDate": "2026-11-12"
   },
   "sec": {
     "enabled": true,
     "mode": "daily",
     "indexDays": {
-      "read": [
-        "2026-11-10"
-      ],
-      "absent": [],
-      "pending": [
+      "read": [],
+      "absent": [
         "2026-11-11"
+      ],
+      "pending": [
+        "2026-11-12"
       ]
     },
-    "submissions": 53,
-    "facts": 13,
-    "fundamentalRows": 103937,
-    "at": "2026-11-11T19:21:35-05:00"
+    "submissions": 0,
+    "facts": 0,
+    "at": "2026-11-12T19:11:47-05:00"
   },
   "coverage": 1.0,
   "llm": {
     "enabled": true,
-    "eligible": 10,
-    "read": 10,
+    "eligible": 0,
+    "read": 0,
     "deferredForTime": 0,
-    "inputTokens": 143593,
-    "outputTokens": 3434,
+    "inputTokens": 0,
+    "outputTokens": 0,
     "model": "claude-haiku-5-5",
     "promptVersion": "guidance-1"
   },
@@ -43,13 +42,13 @@
     "events": []
   },
   "snapshot": {
-    "session": "2026-11-11",
-    "file": "live/snapshots/2026/2026-11-11.json.gz",
-    "sha256": "68290bc4a7e174b19dacecf25ddbd090b63462c19dd669881077e05f98dc47a3",
-    "prevHash": "a0fb5ebd7d253f3d06527bb66322930684c635153d60c156b28425a2d3f0056c",
-    "decidedAt": "2026-11-11T19:22:15-05:00",
-    "entrySession": "2026-11-12"
+    "session": "2026-11-12",
+    "file": "live/snapshots/2026/2026-11-12.json.gz",
+    "sha256": "b2a1aa8ef8ba5e3b579e745b79a781ba195092be616e3d5624c1a7110506d68b",
+    "prevHash": "68290bc4a7e174b19dacecf25ddbd090b63462c19dd669881077e05f98dc47a3",
+    "decidedAt": "2026-11-12T19:12:08-05:00",
+    "entrySession": "2026-11-13"
   },
-  "trades": 14,
+  "trades": 0,
   "status": "published"
 }
