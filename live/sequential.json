@@ -118,31 +118,47 @@
     },
     "llm_guidance-on-ens_all-c3743f03": {
       "vs": "ens_all-c3743f03",
-      "n": 0,
+      "n": 1,
       "verdict": "undecided",
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "mean": 0.0018659999999999788,
+      "lower": -0.6194363066081543,
+      "upper": 0.6231683066081544,
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          0.0018659999999999788
+        ],
+        "lower": [
+          -0.6194363066081543
+        ],
+        "upper": [
+          0.6231683066081544
+        ]
       },
-      "sessions": []
+      "sessions": [
+        "2026-11-05"
+      ]
     },
     "rule_guidance-on-ens_all-c3743f03": {
       "vs": "ens_all-c3743f03",
-      "n": 0,
+      "n": 1,
       "verdict": "undecided",
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "mean": 0.0022529999999999495,
+      "lower": -0.6190493066081544,
+      "upper": 0.6235553066081543,
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          0.0022529999999999495
+        ],
+        "lower": [
+          -0.6190493066081544
+        ],
+        "upper": [
+          0.6235553066081543
+        ]
       },
-      "sessions": []
+      "sessions": [
+        "2026-11-05"
+      ]
     }
   },
   "skill": {
@@ -278,29 +294,45 @@
       }
     },
     "llm_guidance-on-ens_all-c3743f03": {
-      "n": 0,
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "n": 1,
+      "mean": 0.39582,
+      "lower": -0.22548230660815433,
+      "upper": 1.0171223066081543,
       "verdict": "undecided",
-      "sessions": [],
+      "sessions": [
+        "2026-11-05"
+      ],
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          0.39582
+        ],
+        "lower": [
+          -0.22548230660815433
+        ],
+        "upper": [
+          1.0171223066081543
+        ]
       }
     },
     "rule_guidance-on-ens_all-c3743f03": {
-      "n": 0,
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "n": 1,
+      "mean": 0.396207,
+      "lower": -0.22509530660815436,
+      "upper": 1.0175093066081544,
       "verdict": "undecided",
-      "sessions": [],
+      "sessions": [
+        "2026-11-05"
+      ],
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          0.396207
+        ],
+        "lower": [
+          -0.22509530660815436
+        ],
+        "upper": [
+          1.0175093066081544
+        ]
       }
     }
   },
