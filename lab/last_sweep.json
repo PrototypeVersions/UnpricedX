@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-11-07T14:41:34-05:00",
-  "dataSig": "events,fundamentals,liquidity,momentum,reversal,risk,valuation",
+  "startedAt": "2026-11-14T14:59:45-05:00",
+  "dataSig": "events,fundamentals,liquidity,momentum,news,reversal,risk,seasonal,valuation",
   "evaluated": [
     "ridge_all-82743a40",
     "gbm_all-d90c9d52",
@@ -31,12 +31,14 @@
     "factor_book_to_market-eeb0072e",
     "gbm_all_h21-60eeb02c",
     "ridge_all_h21-22dae728",
-    "gbm_all~no_momentum-4ef4f836",
-    "gbm_all~no_reversal-44280213",
-    "gbm_all~no_risk-8bd84cc0",
-    "gbm_all~no_momentum~no_risk-f9dbed12",
-    "gbm_all~no_reversal~no_risk-6cb0ad48",
-    "gbm_all~no_liquidity~no_risk-6f3f8d65"
+    "gbm_all_news-fd309489",
+    "gbm_all_season-a6bddbcf",
+    "gbm_all_season~no_momentum-61768f8a",
+    "gbm_all_season~no_reversal-df9c7239",
+    "gbm_all_season~no_risk-78c61a27",
+    "gbm_all_season~no_liquidity-abfab2b9",
+    "gbm_all_season~no_liquidity~no_momentum-1abd716c",
+    "gbm_all_season~no_liquidity~no_reversal-4b72a2e8"
   ],
   "holdout": [
     "ens_all-c3743f03"
@@ -44,27 +46,27 @@
   "skipped": [],
   "nullControls": [
     {
-      "at": "2026-11-07T14:54:26-05:00",
+      "at": "2026-11-14T15:12:42-05:00",
       "spec": "ridge_all",
-      "seed": 1794081243,
-      "dataSig": "events,fundamentals,liquidity,momentum,reversal,risk,valuation",
-      "icMean": -0.00027184922639415397,
-      "icT": -0.521715131754115,
-      "netAnnual": -0.03530586138367653,
+      "seed": 1794687145,
+      "dataSig": "events,fundamentals,liquidity,momentum,news,reversal,risk,seasonal,valuation",
+      "icMean": -0.0007806669989632151,
+      "icT": -1.5090290838806766,
+      "netAnnual": -0.035824451595544815,
       "passed": false
     },
     {
-      "at": "2026-11-07T14:54:49-05:00",
+      "at": "2026-11-14T15:12:59-05:00",
       "spec": "gbm_all",
-      "seed": 1794081243,
-      "dataSig": "events,fundamentals,liquidity,momentum,reversal,risk,valuation",
-      "icMean": 0.0001888261577218187,
-      "icT": 0.35185398226649683,
-      "netAnnual": -0.0707172229886055,
+      "seed": 1794687145,
+      "dataSig": "events,fundamentals,liquidity,momentum,news,reversal,risk,seasonal,valuation",
+      "icMean": -0.0007701507608410276,
+      "icT": -1.4546114766402827,
+      "netAnnual": -0.07748927921056747,
       "passed": false
     }
   ],
-  "finishedAt": "2026-11-07T15:04:24-05:00",
-  "minutes": 25.1,
+  "finishedAt": "2026-11-14T15:21:58-05:00",
+  "minutes": 23.9,
   "champion": "ens_all-c3743f03"
 }
