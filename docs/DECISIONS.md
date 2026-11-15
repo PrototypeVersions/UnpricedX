@@ -192,3 +192,17 @@ repository to fix.
 - **Dates.** Timestamps are now shown in New York time for every viewer; previously a viewer outside US
   time zones could see the evening's lock-in date as the next day. Display only.
 - **Not changed:** gates, eras, promotion, portfolio rules, holdout, any frozen file.
+
+## 2026-11-15: two research features in new families (proposal, PR from the weekly research session)
+- **What.** `residual` (`resid_rev_1m`: last month's return net of market and statistical-industry exposure,
+  betas from the year before the month, divided by residual volatility) and `turnover` (`turnover_1m`: average
+  dollar volume over market value; `stmom_1m`: rank of last month's return times rank of turnover). Two queued
+  specs, `gbm_all_season_residrev` and `gbm_all_season_stmom`, each equal to the best development model
+  `gbm_all_season` plus the new feature(s). Two new trials.
+- **Why.** The evidence says the models rank stocks (dev IC t ≈ 5.6, holdout t ≈ 3) but costs take nearly all of
+  the long-short edge. Both ideas are published as surviving costs better than raw reversal (Blitz et al. 2013;
+  Medhat & Schmeling 2022).
+- **New families**, so no existing model's features change (every existing `effSig` is unchanged). As on
+  2026-11-08 the data signature gains `residual,turnover`, so the next sweep re-scores the pre-registered specs on
+  it (re-scores, not trials) and gives the provisional champion its usual holdout look.
+- **Not changed:** gates, eras, promotion, portfolio rules, holdout, any frozen file.

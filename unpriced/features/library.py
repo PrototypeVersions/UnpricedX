@@ -428,6 +428,96 @@ def season_amn(ctx):
     return pd.DataFrame(out, index=ctx.dates, columns=mret.columns)
 
 
+# ---------------------------------------------------------------- residual reversal (prices; research 2026-11-15)
+# Own family ("residual") so that no existing model changes its features at the next refit.
+def _resid_moments(ctx: Context, win: int = 252) -> dict[str, pd.DataFrame] | None:
+    """Rolling two-factor regression of each stock's daily return on the market and on its statistical
+    industry's return in excess of the market. Uses only returns up to and including each date."""
+    key = f"resid_moments_{win}"
+    if key in ctx.extras:
+        return ctx.extras[key]
+    r = _ret(ctx)
+    m = ctx.market_ret.reindex(r.index).astype("float64")
+    ind = _group_mean(r, ctx.industry, ctx.member["research"])
+    x = ind.sub(m, axis=0)
+    mp = int(win * 0.8)
+    roll = lambda d: d.rolling(win, min_periods=mp).mean()          # noqa: E731
+    mr, mm = roll(r), m.rolling(win, min_periods=mp).mean()
+    c_rm = roll(r.mul(m, axis=0)) - mr.mul(mm, axis=0)
+    c_mm = (m * m).rolling(win, min_periods=mp).mean() - mm ** 2
+    v_r = roll(r * r) - mr ** 2
+    # market-only fit (used where the stock has no industry yet)
+    b1 = c_rm.div(c_mm, axis=0)
+    ve1 = v_r - b1 * c_rm
+    # two-factor fit on the dates where the industry series is available over the whole window
+    xr = x.where(r.notna())
+    mx = roll(xr)
+    c_rx = roll(r * xr) - mr * mx
+    c_xx = roll(xr * xr) - mx ** 2
+    c_mx = roll(xr.mul(m, axis=0)) - mx.mul(mm, axis=0)
+    det = c_xx.mul(c_mm, axis=0) - c_mx ** 2
+    ok = (det > 1e-12) & x.notna()
+    bm = ((c_rm * c_xx - c_rx * c_mx) / det).where(ok)
+    bx = (c_rx.mul(c_mm, axis=0) - c_rm * c_mx).div(det).where(ok)
+    ve2 = v_r - bm * c_rm - bx * c_rx
+    out = {"bm": bm.fillna(b1), "bx": bx.fillna(0.0).where(b1.notna()), "var_e": ve2.where(ok).fillna(ve1),
+           "x": x.where(ok, 0.0), "m": m}
+    ctx.extras[key] = out
+    return out
+
+
+@feature("resid_rev_1m", "residual", -1,
+         "Last month's residual return (after market and statistical-industry exposure, betas from the year "
+         "before the month) divided by residual volatility: short-term residual reversal.",
+         "Blitz, Huij, Lansdorp & Verbeek (2013); Da, Liu & Schaumburg (2014)")
+def resid_rev_1m(ctx):
+    mo = _resid_moments(ctx)
+    r = _ret(ctx)
+    n = 21
+    rsum = r.rolling(n, min_periods=18).sum()
+    msum = mo["m"].rolling(n, min_periods=18).sum()
+    xsum = mo["x"].where(r.notna()).rolling(n, min_periods=18).sum()
+    bm, bx, ve = mo["bm"].shift(n), mo["bx"].shift(n), mo["var_e"].shift(n)   # estimated before the month
+    e = rsum - bm.mul(msum, axis=0) - bx * xsum
+    sd = np.sqrt(ve.where(ve > 0) * n)
+    return e / sd
+
+
+# ---------------------------------------------------------------- turnover and short-term momentum (research 2026-11-15)
+# Own family ("turnover"); needs SEC share counts, so it is unavailable without SEC data.
+def _turnover(ctx: Context, n: int = 21) -> pd.DataFrame:
+    key = f"turnover_{n}"
+    if key not in ctx.extras:
+        dv = ctx.mats["dollar_volume"][ctx.tickers].replace(0, np.nan)   # printed price x printed volume
+        mcap = _mcap(ctx)
+        ctx.extras[key] = dv.rolling(n, min_periods=15).mean() / mcap.where(mcap > 0)
+    return ctx.extras[key]
+
+
+def _rank_within(mat: pd.DataFrame, ctx: Context) -> pd.DataFrame:
+    """Within-date rank among research-universe members, centred symmetrically on zero."""
+    mask = ctx.member["research"].reindex_like(mat).fillna(False).astype(bool)
+    r = mat.where(mask).rank(axis=1)
+    n = r.notna().sum(axis=1)
+    return (r - 0.5).div(n.where(n > 0), axis=0) - 0.5
+
+
+@feature("turnover_1m", "turnover", -1, "Share turnover: last month's average daily dollar volume over market value.",
+         "Datar, Naik & Radcliffe (1998); Medhat & Schmeling (2022)")
+def turnover_1m(ctx):
+    return _turnover(ctx)
+
+
+@feature("stmom_1m", "turnover", +1,
+         "Short-term momentum: last month's return (rank) times share turnover (rank); positive for high-turnover "
+         "winners and low-turnover losers.",
+         "Medhat & Schmeling (2022)")
+def stmom_1m(ctx):
+    rr = _rank_within(ret_1m(ctx), ctx)
+    tr = _rank_within(_turnover(ctx), ctx)
+    return rr * tr
+
+
 def compute(ctx: Context, names: list[str]) -> dict[str, pd.DataFrame]:
     out = {}
     for n in names:

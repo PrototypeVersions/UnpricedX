@@ -17,8 +17,9 @@ future is used to decide whether it is in the universe.
 All features are percentile-ranked within each date (−0.5…0.5). Families: momentum, reversal
 (including industry-adjusted and overnight/intraday split), risk, liquidity, earnings events
 (SEC 8-K item 2.02), fundamentals (SEC XBRL, first-reported values, effective the session after
-filing), valuation, news (returns on sessions with and without an SEC filing) and seasonal
-(same-calendar-month returns in past years). Industries are statistical (k-means on a year of market-residual returns,
+filing), valuation, news (returns on sessions with and without an SEC filing), seasonal
+(same-calendar-month returns in past years), residual (last month's return after market and industry
+exposure, scaled by residual volatility) and turnover (share turnover and its interaction with last month's return). Industries are statistical (k-means on a year of market-residual returns,
 refreshed each January and July, used strictly afterwards). See `unpriced/features/library.py`;
 each feature cites its source paper.
 

@@ -1,0 +1,21 @@
+{
+ "name": "gbm_all_season_stmom",
+ "kind": "gbm",
+ "families": [
+  "momentum",
+  "reversal",
+  "risk",
+  "liquidity",
+  "events",
+  "fundamentals",
+  "valuation"
+ ],
+ "features": [
+  "season_amn",
+  "turnover_1m",
+  "stmom_1m"
+ ],
+ "horizon": 5,
+ "notes": "Hypothesis: last month's return means different things for stocks that traded heavily and lightly. Medhat & Schmeling (2022, Review of Financial Studies 35(3):1480-1526): among the highest-turnover stocks (volume / shares outstanding) last month's winners keep winning (short-term momentum, ~1.4%/month, persists ~12 months, survives half-spread costs, strongest in large liquid stocks), while among low-turnover stocks they reverse. Mechanism: heavy trading signals information-driven moves that are underreacted to; light-trading moves are liquidity shocks that revert. The trees cannot form turnover from log_dvol and log_mcap easily (it is their difference), so turnover_1m (average daily dollar volume over market value, needs SEC share counts) and stmom_1m (centred rank of 1-month return times centred rank of turnover) are added explicitly in a new 'turnover' family (no existing model changes). Because the high-turnover winner signal is persistent, it should help the model hold names longer, i.e. lower turnover per unit of IC. Comparison: identical to gbm_all_season except for these two features. Success: dev IC t at least equal to gbm_all_season's with a higher net hysteresis long-short (> +2%/yr) and gates passed. Failure: no IC or net gain. Caveat: the paper's weekly-formation version loses money (price pressure), and its sorts are monthly, so the 5-day effect may be small.",
+ "proposedBy": "ai-research-2026-11-15"
+}
