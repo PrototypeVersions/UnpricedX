@@ -1,0 +1,20 @@
+{
+ "name": "gbm_all_season_residrev",
+ "kind": "gbm",
+ "families": [
+  "momentum",
+  "reversal",
+  "risk",
+  "liquidity",
+  "events",
+  "fundamentals",
+  "valuation"
+ ],
+ "features": [
+  "season_amn",
+  "resid_rev_1m"
+ ],
+ "horizon": 5,
+ "notes": "Hypothesis: the reversal family is the core of the learned models (dropping it cuts dev IC t from 5.6 to 3.8), but raw reversal is mostly a bet on recent factor and industry moves, and its edge is too small for its trading costs (gbm_all_season: gross hysteresis long-short +8.7%/yr, net +0.2%). Blitz, Huij, Lansdorp & Verbeek (2013, J. Financial Markets 16(3):477-504) show that reversal measured on factor-model residuals and scaled by residual volatility earns about twice the risk-adjusted return of conventional reversal, trades less in small volatile names, and survives costs: in the 500 largest US stocks the break-even round-trip cost is ~48 bp vs ~18 bp for conventional reversal (Keim-Madhavan costs, 1990-2008). Da, Liu & Schaumburg (2014, Management Science 60(3):658-674) find the reversal comes from the non-fundamental part of the move. resid_rev_1m removes market and statistical-industry exposure with betas estimated over the year before the formation month and divides the residual month by residual volatility (new 'residual' family; no existing model changes). Comparison: identical to gbm_all_season (best development model, IC t 5.63) except for this one feature. Success: dev IC t at least equal to gbm_all_season's and a higher net hysteresis long-short (> +2%/yr), with the gates passed. Failure: no IC gain or no net gain (the feature is ~collinear with ind_rel_1m + ivol_3m, which the trees already combine). Risk: survivor-only Yahoo history flatters reversal-type signals.",
+ "proposedBy": "ai-research-2026-11-15"
+}
