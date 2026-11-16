@@ -1,40 +1,40 @@
 {
-  "session": "2026-11-13",
-  "startedAt": "2026-11-13T19:09:19-05:00",
+  "session": "2026-11-16",
+  "startedAt": "2026-11-16T17:35:02-05:00",
   "prices": {
-    "requested": 1059,
+    "requested": 1064,
     "new": 0,
-    "refetched": 13,
-    "appended": 1045,
+    "refetched": 0,
+    "appended": 1062,
     "failed": [],
-    "rows": 16710111,
-    "lastDate": "2026-11-13"
+    "rows": 16760706,
+    "lastDate": "2026-11-16"
   },
   "sec": {
     "enabled": true,
     "mode": "daily",
     "indexDays": {
       "read": [
-        "2026-11-12"
+        "2026-11-13"
       ],
       "absent": [],
       "pending": [
-        "2026-11-13"
+        "2026-11-16"
       ]
     },
-    "submissions": 79,
-    "facts": 20,
-    "fundamentalRows": 103960,
-    "at": "2026-11-13T19:17:25-05:00"
+    "submissions": 36,
+    "facts": 3,
+    "fundamentalRows": 104138,
+    "at": "2026-11-16T17:44:20-05:00"
   },
-  "coverage": 1.0,
+  "coverage": 0.999,
   "llm": {
     "enabled": true,
-    "eligible": 18,
-    "read": 18,
+    "eligible": 4,
+    "read": 4,
     "deferredForTime": 0,
-    "inputTokens": 254317,
-    "outputTokens": 6147,
+    "inputTokens": 69179,
+    "outputTokens": 1332,
     "model": "claude-haiku-5-5",
     "promptVersion": "guidance-1"
   },
@@ -43,12 +43,12 @@
     "events": []
   },
   "snapshot": {
-    "session": "2026-11-13",
-    "file": "live/snapshots/2026/2026-11-13.json.gz",
-    "sha256": "d511ac39686eff0860056331f6b7e07b8339bc74cba2e1c7369a8ef3813e7d6b",
-    "prevHash": "b2a1aa8ef8ba5e3b579e745b79a781ba195092be616e3d5624c1a7110506d68b",
-    "decidedAt": "2026-11-13T19:18:23-05:00",
-    "entrySession": "2026-11-16"
+    "session": "2026-11-16",
+    "file": "live/snapshots/2026/2026-11-16.json.gz",
+    "sha256": "d6093862a530a13bc9653fbf3e1e75c7c2aef0e491b3e179d5a7a34d921c0eb9",
+    "prevHash": "d511ac39686eff0860056331f6b7e07b8339bc74cba2e1c7369a8ef3813e7d6b",
+    "decidedAt": "2026-11-16T17:44:48-05:00",
+    "entrySession": "2026-11-17"
   },
   "trades": 0,
   "status": "published"
