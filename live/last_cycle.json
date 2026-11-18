@@ -1,54 +1,54 @@
 {
-  "session": "2026-11-16",
-  "startedAt": "2026-11-16T17:35:02-05:00",
+  "session": "2026-11-17",
+  "startedAt": "2026-11-17T19:09:18-05:00",
   "prices": {
     "requested": 1064,
     "new": 0,
-    "refetched": 0,
-    "appended": 1062,
+    "refetched": 21,
+    "appended": 1041,
     "failed": [],
-    "rows": 16760706,
-    "lastDate": "2026-11-16"
+    "rows": 16761768,
+    "lastDate": "2026-11-17"
   },
   "sec": {
     "enabled": true,
     "mode": "daily",
     "indexDays": {
       "read": [
-        "2026-11-13"
+        "2026-11-16"
       ],
       "absent": [],
       "pending": [
-        "2026-11-16"
+        "2026-11-17"
       ]
     },
-    "submissions": 36,
-    "facts": 3,
-    "fundamentalRows": 104138,
-    "at": "2026-11-16T17:44:20-05:00"
+    "submissions": 79,
+    "facts": 6,
+    "fundamentalRows": 104144,
+    "at": "2026-11-17T19:17:19-05:00"
   },
-  "coverage": 0.999,
+  "coverage": 0.998,
   "llm": {
     "enabled": true,
-    "eligible": 4,
-    "read": 4,
+    "eligible": 6,
+    "read": 6,
     "deferredForTime": 0,
-    "inputTokens": 69179,
-    "outputTokens": 1332,
+    "inputTokens": 90375,
+    "outputTokens": 2063,
     "model": "claude-haiku-5-5",
     "promptVersion": "guidance-1"
   },
-  "newScores": 15,
+  "newScores": 16,
   "promotion": {
     "events": []
   },
   "snapshot": {
-    "session": "2026-11-16",
-    "file": "live/snapshots/2026/2026-11-16.json.gz",
-    "sha256": "d6093862a530a13bc9653fbf3e1e75c7c2aef0e491b3e179d5a7a34d921c0eb9",
-    "prevHash": "d511ac39686eff0860056331f6b7e07b8339bc74cba2e1c7369a8ef3813e7d6b",
-    "decidedAt": "2026-11-16T17:44:48-05:00",
-    "entrySession": "2026-11-17"
+    "session": "2026-11-17",
+    "file": "live/snapshots/2026/2026-11-17.json.gz",
+    "sha256": "d425ee87971da5617cbcdb6561da6eb74938d9aab6899da8c2c6483aa9e395d4",
+    "prevHash": "d6093862a530a13bc9653fbf3e1e75c7c2aef0e491b3e179d5a7a34d921c0eb9",
+    "decidedAt": "2026-11-17T19:17:48-05:00",
+    "entrySession": "2026-11-18"
   },
   "trades": 0,
   "status": "published"

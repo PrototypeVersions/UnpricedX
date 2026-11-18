@@ -2,17 +2,25 @@
   "comparisons": {
     "factor_ret_1w-5b09bb5d": {
       "vs": "ens_all-c3743f03",
-      "n": 0,
+      "n": 1,
       "verdict": "undecided",
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "mean": 0.027727999999999975,
+      "lower": -0.5935743066081544,
+      "upper": 0.6490303066081543,
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          0.027727999999999975
+        ],
+        "lower": [
+          -0.5935743066081544
+        ],
+        "upper": [
+          0.6490303066081543
+        ]
       },
-      "sessions": []
+      "sessions": [
+        "2026-11-09"
+      ]
     },
     "gbm_all-d90c9d52": {
       "vs": "ens_all-c3743f03",
@@ -38,17 +46,25 @@
     },
     "gbm_all_h21-60eeb02c": {
       "vs": "ens_all-c3743f03",
-      "n": 0,
+      "n": 1,
       "verdict": "undecided",
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "mean": -0.07398199999999999,
+      "lower": -0.6952843066081543,
+      "upper": 0.5473203066081543,
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          -0.07398199999999999
+        ],
+        "lower": [
+          -0.6952843066081543
+        ],
+        "upper": [
+          0.5473203066081543
+        ]
       },
-      "sessions": []
+      "sessions": [
+        "2026-11-09"
+      ]
     },
     "gbm_all_h21-h5-d90c9d52": {
       "vs": "ens_all-c3743f03",
@@ -184,16 +200,24 @@
       }
     },
     "factor_ret_1w-5b09bb5d": {
-      "n": 0,
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "n": 1,
+      "mean": 0.292741,
+      "lower": -0.32856130660815436,
+      "upper": 0.9140433066081544,
       "verdict": "undecided",
-      "sessions": [],
+      "sessions": [
+        "2026-11-09"
+      ],
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          0.292741
+        ],
+        "lower": [
+          -0.32856130660815436
+        ],
+        "upper": [
+          0.9140433066081544
+        ]
       }
     },
     "gbm_all-d90c9d52": {
@@ -218,16 +242,24 @@
       }
     },
     "gbm_all_h21-60eeb02c": {
-      "n": 0,
-      "mean": null,
-      "lower": null,
-      "upper": null,
+      "n": 1,
+      "mean": 0.191031,
+      "lower": -0.4302713066081543,
+      "upper": 0.8123333066081544,
       "verdict": "undecided",
-      "sessions": [],
+      "sessions": [
+        "2026-11-09"
+      ],
       "path": {
-        "mean": [],
-        "lower": [],
-        "upper": []
+        "mean": [
+          0.191031
+        ],
+        "lower": [
+          -0.4302713066081543
+        ],
+        "upper": [
+          0.8123333066081544
+        ]
       }
     },
     "gbm_all_h21-h5-d90c9d52": {
