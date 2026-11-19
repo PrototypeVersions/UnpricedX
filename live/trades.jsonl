@@ -22,3 +22,13 @@
 {"session": "2026-11-11", "ticker": "WDC", "side": "SELL", "dollars": 92.4294, "price": 308.320007, "costDollars": 0.1571, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
 {"session": "2026-11-11", "ticker": "AMD", "side": "SELL", "dollars": 111.8418, "price": 543.059998, "costDollars": 0.1901, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
 {"session": "2026-11-11", "ticker": "MPC", "side": "BUY", "dollars": 100.6845, "price": 395.950012, "costDollars": 0.0604, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-10"}
+{"session": "2026-11-18", "ticker": "AMAT", "side": "SELL", "dollars": 94.9958, "price": 354.970001, "costDollars": 0.1615, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-18", "ticker": "NTAP", "side": "SELL", "dollars": 95.9538, "price": 175.25, "costDollars": 0.1631, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-18", "ticker": "EAT", "side": "SELL", "dollars": 100.8355, "price": 193.559998, "costDollars": 0.1714, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-18", "ticker": "FIVE", "side": "BUY", "dollars": 95.8843, "price": 229.75, "costDollars": 0.0959, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-18", "ticker": "ADI", "side": "BUY", "dollars": 95.8843, "price": 388.484985, "costDollars": 0.0575, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-18", "ticker": "VLO", "side": "SELL", "dollars": 101.6429, "price": 360.570007, "costDollars": 0.1728, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-18", "ticker": "EBAY", "side": "BUY", "dollars": 95.8843, "price": 118.305, "costDollars": 0.0959, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-18", "ticker": "ROST", "side": "BUY", "dollars": 95.8843, "price": 226.675003, "costDollars": 0.0959, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-18", "ticker": "WSM", "side": "BUY", "dollars": 95.8843, "price": 249.929993, "costDollars": 0.0959, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-18", "ticker": "MPC", "side": "SELL", "dollars": 99.4359, "price": 391.040009, "costDollars": 0.169, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
