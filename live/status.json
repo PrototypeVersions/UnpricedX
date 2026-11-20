@@ -1,13 +1,13 @@
 {
-  "lastSession": "2026-11-18",
-  "lastRunAt": "2026-11-18T19:16:53-05:00",
-  "lastSnapshot": "live/snapshots/2026/2026-11-18.json.gz",
-  "entrySession": "2026-11-19",
+  "lastSession": "2026-11-19",
+  "lastRunAt": "2026-11-19T19:18:57-05:00",
+  "lastSnapshot": "live/snapshots/2026/2026-11-19.json.gz",
+  "entrySession": "2026-11-20",
   "champion": "ens_all-c3743f03",
   "championStatus": "provisional",
   "coverage": 1.0,
   "secEnabled": true,
   "llmEnabled": true,
-  "dataLastDate": "2026-11-18",
+  "dataLastDate": "2026-11-19",
   "lastError": null
 }

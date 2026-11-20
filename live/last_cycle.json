@@ -1,40 +1,40 @@
 {
-  "session": "2026-11-18",
-  "startedAt": "2026-11-18T19:09:30-05:00",
+  "session": "2026-11-19",
+  "startedAt": "2026-11-19T19:09:41-05:00",
   "prices": {
-    "requested": 1061,
+    "requested": 1058,
     "new": 0,
-    "refetched": 1,
-    "appended": 1058,
+    "refetched": 15,
+    "appended": 1041,
     "failed": [],
-    "rows": 16757074,
-    "lastDate": "2026-11-18"
+    "rows": 16758130,
+    "lastDate": "2026-11-19"
   },
   "sec": {
     "enabled": true,
     "mode": "daily",
     "indexDays": {
       "read": [
-        "2026-11-17"
+        "2026-11-18"
       ],
       "absent": [],
       "pending": [
-        "2026-11-18"
+        "2026-11-19"
       ]
     },
-    "submissions": 48,
-    "facts": 6,
-    "fundamentalRows": 104150,
-    "at": "2026-11-18T19:16:27-05:00"
+    "submissions": 50,
+    "facts": 2,
+    "fundamentalRows": 104152,
+    "at": "2026-11-19T19:18:23-05:00"
   },
   "coverage": 1.0,
   "llm": {
     "enabled": true,
-    "eligible": 5,
-    "read": 5,
+    "eligible": 8,
+    "read": 8,
     "deferredForTime": 0,
-    "inputTokens": 72191,
-    "outputTokens": 1680,
+    "inputTokens": 119246,
+    "outputTokens": 2761,
     "model": "claude-haiku-5-5",
     "promptVersion": "guidance-1"
   },
@@ -43,13 +43,13 @@
     "events": []
   },
   "snapshot": {
-    "session": "2026-11-18",
-    "file": "live/snapshots/2026/2026-11-18.json.gz",
-    "sha256": "83d63c7b9131d64efad60227e9ad61728d9fd660055a5d600f62f0c8c7728380",
-    "prevHash": "d425ee87971da5617cbcdb6561da6eb74938d9aab6899da8c2c6483aa9e395d4",
-    "decidedAt": "2026-11-18T19:16:53-05:00",
-    "entrySession": "2026-11-19"
+    "session": "2026-11-19",
+    "file": "live/snapshots/2026/2026-11-19.json.gz",
+    "sha256": "5b56336c02d815215cf16394af6c01f4209619c6aac631aca3f4092a27bda5ba",
+    "prevHash": "83d63c7b9131d64efad60227e9ad61728d9fd660055a5d600f62f0c8c7728380",
+    "decidedAt": "2026-11-19T19:18:56-05:00",
+    "entrySession": "2026-11-20"
   },
-  "trades": 10,
+  "trades": 0,
   "status": "published"
 }
