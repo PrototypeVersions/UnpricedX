@@ -518,6 +518,96 @@ def stmom_1m(ctx):
     return rr * tr
 
 
+# ---------------------------------------------------------------- tug of war: overnight vs. daytime (prices; research 2026-11-22)
+# Own family ("tugofwar") so that no existing model changes its features at the next refit.
+def _night_day(ctx: Context) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Overnight (previous close to open) and daytime (open to close) log returns, total-return adjusted."""
+    key = "night_day"
+    if key not in ctx.extras:
+        o = ctx.mats["adj_open"][ctx.tickers].where(lambda x: x > 0)
+        c = _px(ctx).where(lambda x: x > 0)
+        ctx.extras[key] = (np.log(o / c.shift(1)), np.log(c / o))
+    return ctx.extras[key]
+
+
+def _pattern_freq(night: pd.DataFrame, day: pd.DataFrame, pattern: pd.DataFrame, n: int = 21) -> pd.DataFrame:
+    valid = (night.notna() & day.notna()).astype(float)
+    hits = pattern.astype(float).where(valid > 0, 0.0)
+    cnt = valid.rolling(n, min_periods=1).sum()
+    return (hits.rolling(n, min_periods=1).sum() / cnt).where(cnt >= 15)
+
+
+@feature("nr_freq_1m", "tugofwar", +1,
+         "Share of the last month's sessions with a positive overnight return followed by a negative daytime "
+         "return (a 'negative daytime reversal': the daily tug of war between overnight and daytime clienteles).",
+         "Akbas, Boehmer, Jiang & Koch (2022, JFE 145(3):850-875)")
+def nr_freq_1m(ctx):
+    night, day = _night_day(ctx)
+    return _pattern_freq(night, day, (night > 0) & (day < 0))
+
+
+@feature("pr_freq_1m", "tugofwar", 0,
+         "Share of the last month's sessions with a negative overnight return followed by a positive daytime "
+         "return (the mirror pattern; used as a control for nr_freq_1m).",
+         "Akbas, Boehmer, Jiang & Koch (2022, JFE 145(3):850-875)")
+def pr_freq_1m(ctx):
+    night, day = _night_day(ctx)
+    return _pattern_freq(night, day, (night < 0) & (day > 0))
+
+
+# ---------------------------------------------------------------- intra-industry lead-lag (prices; research 2026-11-22)
+# Own family ("leadlag") so that no existing model changes its features at the next refit.
+def _big_in_industry(ctx: Context, frac: float = 1 / 3) -> pd.DataFrame:
+    """True for research-universe members in the top `frac` of their statistical industry by trailing
+    63-session median dollar volume on each date (uses only volume up to that date)."""
+    key = f"big_in_industry_{frac:.3f}"
+    if key in ctx.extras:
+        return ctx.extras[key]
+    dv = ctx.mats["dollar_volume"][ctx.tickers].replace(0, np.nan)
+    med = dv.rolling(63, min_periods=50).median()
+    mask = ctx.member["research"].reindex_like(med).fillna(False).astype(bool)
+    g = ctx.industry.reindex_like(med)
+    gv = g.to_numpy(dtype="float64")
+    mv = med.where(mask & g.notna()).to_numpy(dtype="float64")
+    big = np.zeros_like(mv, dtype=bool)
+    ids = np.unique(gv[~np.isnan(gv)]) if np.isfinite(gv).any() else []
+    for gid in ids:
+        v = np.where(gv == gid, mv, np.nan)
+        r = pd.DataFrame(v).rank(axis=1, pct=True, ascending=False).to_numpy()
+        big |= (r <= frac) & ~np.isnan(v)
+    out = pd.DataFrame(big, index=med.index, columns=med.columns)
+    ctx.extras[key] = out
+    return out
+
+
+@feature("ind_lead_1w", "leadlag", +1,
+         "Last week's market-adjusted return of the largest third (by dollar volume) of the stock's statistical "
+         "industry, excluding the stock itself: slow diffusion of industry news from big to small firms.",
+         "Hou (2007, RFS 20(4):1113-1138); Lo & MacKinlay (1990)")
+def ind_lead_1w(ctx):
+    p = _px(ctx)
+    r5 = (p / p.shift(5) - 1)
+    m5 = np.expm1(np.log1p(ctx.market_ret.reindex(ctx.dates).astype("float64")).rolling(5, min_periods=5).sum())
+    ab = r5.sub(m5, axis=0)
+    big = _big_in_industry(ctx)
+    g = ctx.industry.reindex_like(ab)
+    gv = g.to_numpy(dtype="float64")
+    x = ab.where(big).to_numpy(dtype="float64")
+    own = np.where(big.to_numpy() & ~np.isnan(x), x, 0.0)
+    own_n = (big.to_numpy() & ~np.isnan(x)).astype(float)
+    res = np.full_like(x, np.nan)
+    ids = np.unique(gv[~np.isnan(gv)]) if np.isfinite(gv).any() else []
+    for gid in ids:
+        m = gv == gid
+        v = np.where(m, x, np.nan)
+        cnt = np.sum(~np.isnan(v), axis=1)[:, None]
+        tot = np.nansum(v, axis=1)[:, None]
+        loo_n = cnt - own_n
+        val = np.where(loo_n >= 3, (tot - own) / np.maximum(loo_n, 1), np.nan)
+        res = np.where(m, val, res)
+    return pd.DataFrame(res, index=ab.index, columns=ab.columns)
+
+
 def compute(ctx: Context, names: list[str]) -> dict[str, pd.DataFrame]:
     out = {}
     for n in names:

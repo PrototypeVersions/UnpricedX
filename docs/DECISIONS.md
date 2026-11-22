@@ -206,3 +206,17 @@ repository to fix.
   2026-11-08 the data signature gains `residual,turnover`, so the next sweep re-scores the pre-registered specs on
   it (re-scores, not trials) and gives the provisional champion its usual holdout look.
 - **Not changed:** gates, eras, promotion, portfolio rules, holdout, any frozen file.
+
+## 2026-11-22: two research features in new families (proposal, PR from the weekly research session)
+- **What.** `tugofwar` (`nr_freq_1m`: share of last month's sessions with a positive overnight and a negative daytime
+  return; `pr_freq_1m`: the mirror pattern, as a control) and `leadlag` (`ind_lead_1w`: last week's market-adjusted
+  return of the biggest third of the stock's statistical industry, excluding the stock). Two queued specs,
+  `gbm_all_season_residrev_tow` and `gbm_all_season_residrev_leadlag`, each equal to `gbm_all_season_residrev` (best
+  development model by net hysteresis long-short) plus the new feature(s). Two new trials.
+- **Why.** Dev IC is strong but the edge is short-horizon reversal with ~78% turnover per rebalance, so costs leave a net
+  long-short too small for the PSR gate. The tug-of-war count is slow-moving (Akbas, Boehmer, Jiang & Koch 2022, JFE);
+  the lead-lag is a weekly cross-stock channel not yet tried (Hou 2007, RFS).
+- **New families**, so no existing model's features change. As on 2026-11-08 and 2026-11-15 the data signature gains
+  `leadlag,tugofwar`, so the next sweep re-scores the pre-registered specs on it (re-scores, not trials) and gives the
+  provisional champion its usual holdout look.
+- **Not changed:** gates, eras, promotion, portfolio rules, holdout, any frozen file.

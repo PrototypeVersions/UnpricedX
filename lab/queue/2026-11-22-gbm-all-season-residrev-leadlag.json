@@ -1,0 +1,21 @@
+{
+ "name": "gbm_all_season_residrev_leadlag",
+ "kind": "gbm",
+ "families": [
+  "momentum",
+  "reversal",
+  "risk",
+  "liquidity",
+  "events",
+  "fundamentals",
+  "valuation"
+ ],
+ "features": [
+  "season_amn",
+  "resid_rev_1m",
+  "ind_lead_1w"
+ ],
+ "horizon": 5,
+ "notes": "Hypothesis: industry news reaches big firms first and small firms later, so last week's return of the big firms in a stock's industry predicts that stock's return this week. Hou (2007, Review of Financial Studies 20(4):1113-1138) finds that the big-to-small lead-lag effect (Lo & MacKinlay 1990) is predominantly intra-industry, driven by sluggish adjustment to negative news, and stronger in small, less competitive and neglected industries. This is the one weekly cross-stock channel the lab has not tried: ind_mom_6 is six-month industry momentum and ind_rel_1m is own-minus-industry reversal, both using all members. ind_lead_1w = last week's market-adjusted return of the top third (by 63-session median dollar volume) of the stock's statistical industry, excluding the stock itself; needs at least three big peers. The trees can learn that it matters more for small names (log_dvol is in the model). New family 'leadlag' (no existing model changes). Comparison: identical to gbm_all_season_residrev except for this feature. Success: higher dev IC t than 6.13 with a positive IC contribution in most years, and net hysteresis long-short not lower. Failure: no IC gain (statistical industries may be too noisy to carry the effect, or the effect has decayed since publication), or a gain that costs eat because it is a weekly signal. Risk: survivor-only Yahoo history.",
+ "proposedBy": "ai-research-2026-11-22"
+}

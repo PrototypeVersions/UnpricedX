@@ -1,0 +1,22 @@
+{
+ "name": "gbm_all_season_residrev_tow",
+ "kind": "gbm",
+ "families": [
+  "momentum",
+  "reversal",
+  "risk",
+  "liquidity",
+  "events",
+  "fundamentals",
+  "valuation"
+ ],
+ "features": [
+  "season_amn",
+  "resid_rev_1m",
+  "nr_freq_1m",
+  "pr_freq_1m"
+ ],
+ "horizon": 5,
+ "notes": "Hypothesis: the learned models rank stocks (dev IC t ~6) but their edge is almost all short-horizon reversal, which turns over ~78% per rebalance, so costs leave little (best model gbm_all_season_residrev: gross hysteresis long-short +11.6%/yr, net +3.2%, PSR 0.74 < 0.95). A slow-moving signal could add net return without adding much turnover. Akbas, Boehmer, Jiang & Koch (2022, J. Financial Economics 145(3):850-875) show that a higher frequency, during a month, of positive overnight returns followed by negative daytime returns (a more intense 'tug of war' between overnight noise traders and daytime arbitrageurs, who overcorrect persistent overnight buying pressure) predicts higher future returns in the cross section. The measure is a count over a month, so by construction it changes slowly from week to week. It is distinct from the level of overnight/daytime returns already in the reversal family (Lou, Polk & Skouras 2019): it counts days with the pattern, not their size. nr_freq_1m = share of the last 21 sessions with overnight > 0 and daytime < 0; pr_freq_1m = the mirror pattern, as a control. New family 'tugofwar' (no existing model changes). Comparison: identical to gbm_all_season_residrev except for these two features. Success: dev IC t at least that of gbm_all_season_residrev (6.13) and a higher net hysteresis long-short with turnover no higher, ideally passing the gates. Failure: no net gain, or a gain only in gross returns. Risks: survivor-only Yahoo history; Yahoo opens are noisier than closes, which adds noise to the overnight/daytime split; the paper works at a monthly horizon, ours is five sessions.",
+ "proposedBy": "ai-research-2026-11-22"
+}
