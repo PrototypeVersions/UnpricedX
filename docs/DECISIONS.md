@@ -220,3 +220,44 @@ repository to fix.
   `leadlag,tugofwar`, so the next sweep re-scores the pre-registered specs on it (re-scores, not trials) and gives the
   provisional champion its usual holdout look.
 - **Not changed:** gates, eras, promotion, portfolio rules, holdout, any frozen file.
+
+## 2026-11-23: pre-registered trading-rule trials (written before any result was computed)
+- **Why.** The models rank stocks (holdout IC ≈ 0.02, t ≈ 3) but trading costs take the edge: the hysteresis
+  long-short makes about +3% a year gross on the holdout and −1.7% net. Promised to the owner on 2026-11-05: test a
+  small, pre-declared set of portfolio rules that trade less, each counted as a trial and gated on after-cost returns.
+- **What is tested.** Only *how the champion's ranks are traded*, never the ranks. Every rule is applied to the same
+  out-of-sample walk-forward predictions of the current champion (`ens_all-c3743f03`, spec frozen, recomputed by the
+  normal walk-forward on the current data), through the lab's long-only test, which calls the live portfolio's own
+  `select_holdings`. The current rule (10 names, keep until rank 40, at most 3 per statistical sector, trade every
+  5 sessions) stays the default and its results do not change (regression test); it is the comparison, not a trial.
+- **The four rules (and no others):**
+  1. `rule_hold10`: trade every 10 sessions instead of 5 (holdings are left alone at the in-between rebalance).
+     Novy-Marx & Velikov (2016, RFS, "A taxonomy of anomalies and their trading costs"): lower rebalancing frequency
+     is the first-order cost mitigation for high-turnover signals; Gârleanu & Pedersen (2013, JF): trade slowly
+     toward the aim portfolio when costs are large relative to the signal's decay.
+  2. `rule_exit80`: keep a held name until it falls below rank 80 (instead of 40). Novy-Marx & Velikov's buy/hold
+     spread; DeMiguel, Martin-Utrera, Nogales & Uppal (2020, RFS): with costs, the optimal policy has a no-trade
+     region and trades only names whose signal has moved a lot.
+  3. `rule_n20`: 20 names, keep until rank 80, at most 6 per sector (the current 10/40/3 scaled to 20 names).
+     More names dilute stock-specific noise so a weak signal is held more steadily; DeMiguel et al. (2020) find
+     cost-aware portfolios spread over more names.
+  4. `rule_hold10_exit80`: rules 1 and 2 together (Gârleanu & Pedersen: trade both less often and less per trade).
+- **Not tested, and why.** Volatility-scaled exposure: scaling the money invested by a volatility estimate holds
+  cash part of the time, so the "excess over SPY" would mix market timing into a stock-selection test, and the
+  champion's walk-forward output does not carry the raw volatility estimate (adding it would change shared
+  code). Sector-cap variants: the cap of 3 was set on 2026-11-03 for concentration, not cost, with a promise not
+  to tune it on results.
+- **Trials and gates (unchanged rules, applied to the rule's after-cost excess over SPY).** Each rule is one
+  development trial in `lab/ledger.jsonl` (status `rule-evaluated`, so it raises the trial count and, if it is
+  looked at on the holdout, the holdout-look count, exactly like a model). Development gate: positive annual
+  after-cost excess over SPY and PSR of the per-period excess ≥ `devNetPsrMin` (0.95). Holdout gate: annual
+  after-cost excess over SPY > `holdoutNetSpreadMin` (0), scored by `lab/runner.py` on the sealed 2022+ years,
+  development passers best first, within the weekly (3) and yearly (30) holdout caps. The IC gates do not apply
+  because a rule does not change the ranks (the champion's IC is what it is).
+- **Decision rule, fixed now.** If exactly one rule passes both gates, it runs live as a *second* paper portfolio
+  beside the current one (own files, from the next rebalance, never backfilled, shown separately). If several
+  pass, the one with the highest development Sharpe of after-cost excess over SPY is chosen. If none pass, that is
+  recorded here and nothing live changes. The current paper portfolio is never replaced by this test.
+- **How it is run.** `python -m unpriced.cli rules` (ops request `{"command": "rules"}`) evaluates the rules in
+  `lab/rules/*.json` once per data signature; it does not run the model sweep, refit live models, or touch any
+  forecast. Its report is `lab/rules/last_run.json`. The Saturday sweep ignores these files.
