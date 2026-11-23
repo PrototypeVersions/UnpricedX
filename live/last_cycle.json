@@ -1,40 +1,40 @@
 {
-  "session": "2026-11-20",
-  "startedAt": "2026-11-20T19:09:17-05:00",
+  "session": "2026-11-23",
+  "startedAt": "2026-11-23T17:44:51-05:00",
   "prices": {
-    "requested": 1057,
+    "requested": 1064,
     "new": 0,
-    "refetched": 8,
-    "appended": 1047,
+    "refetched": 0,
+    "appended": 1062,
     "failed": [],
-    "rows": 16759185,
-    "lastDate": "2026-11-20"
+    "rows": 16795706,
+    "lastDate": "2026-11-23"
   },
   "sec": {
     "enabled": true,
     "mode": "daily",
     "indexDays": {
       "read": [
-        "2026-11-19"
+        "2026-11-20"
       ],
       "absent": [],
       "pending": [
-        "2026-11-20"
+        "2026-11-23"
       ]
     },
-    "submissions": 35,
+    "submissions": 41,
     "facts": 5,
-    "fundamentalRows": 104114,
-    "at": "2026-11-20T19:18:27-05:00"
+    "fundamentalRows": 104174,
+    "at": "2026-11-23T17:52:53-05:00"
   },
   "coverage": 1.0,
   "llm": {
     "enabled": true,
-    "eligible": 8,
-    "read": 8,
+    "eligible": 11,
+    "read": 11,
     "deferredForTime": 0,
-    "inputTokens": 119308,
-    "outputTokens": 2822,
+    "inputTokens": 177441,
+    "outputTokens": 3897,
     "model": "claude-haiku-5-5",
     "promptVersion": "guidance-1"
   },
@@ -43,12 +43,12 @@
     "events": []
   },
   "snapshot": {
-    "session": "2026-11-20",
-    "file": "live/snapshots/2026/2026-11-20.json.gz",
-    "sha256": "68ad4dcefc7cd0f65c95a1c5ae1d134611c2223f3e51e544e5a31279b0c4a48f",
-    "prevHash": "5b56336c02d815215cf16394af6c01f4209619c6aac631aca3f4092a27bda5ba",
-    "decidedAt": "2026-11-20T19:19:05-05:00",
-    "entrySession": "2026-11-23"
+    "session": "2026-11-23",
+    "file": "live/snapshots/2026/2026-11-23.json.gz",
+    "sha256": "e611663b4e6386f081885a8f3dc3800a434b1688a2b0ef53208f51d7a8e6943f",
+    "prevHash": "68ad4dcefc7cd0f65c95a1c5ae1d134611c2223f3e51e544e5a31279b0c4a48f",
+    "decidedAt": "2026-11-23T17:53:35-05:00",
+    "entrySession": "2026-11-24"
   },
   "trades": 0,
   "status": "published"

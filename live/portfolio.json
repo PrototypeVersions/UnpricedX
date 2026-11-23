@@ -6,81 +6,81 @@
       "dollars": 99.936,
       "anchor": 823.0,
       "entrySession": "2026-11-04",
-      "lastValue": 72.190708,
-      "lastPrice": 594.51001
+      "lastValue": 85.935247,
+      "lastPrice": 707.700012
     },
     "NVDA": {
       "dollars": 100.6844552367405,
       "anchor": 172.72000122070312,
       "entrySession": "2026-11-11",
-      "lastValue": 73.175773,
-      "lastPrice": 125.529999
+      "lastValue": 96.213348,
+      "lastPrice": 165.050003
     },
     "FIVE": {
       "dollars": 95.88425559185004,
       "anchor": 229.75,
       "entrySession": "2026-11-18",
-      "lastValue": 92.315983,
-      "lastPrice": 221.199997
+      "lastValue": 90.129116,
+      "lastPrice": 215.960007
     },
     "ADI": {
       "dollars": 95.88425559185004,
       "anchor": 388.4849853515625,
       "entrySession": "2026-11-18",
-      "lastValue": 85.378545,
-      "lastPrice": 345.920013
+      "lastValue": 93.481507,
+      "lastPrice": 378.75
     },
     "LRCX": {
       "dollars": 99.936,
       "anchor": 227.7899932861328,
       "entrySession": "2026-11-04",
-      "lastValue": 80.404195,
-      "lastPrice": 183.270004
+      "lastValue": 92.025881,
+      "lastPrice": 209.759995
     },
     "CAT": {
       "dollars": 100.6844552367405,
       "anchor": 600.7000122070312,
       "entrySession": "2026-11-11",
-      "lastValue": 85.557484,
-      "lastPrice": 510.450012
+      "lastValue": 91.690396,
+      "lastPrice": 547.039978
     },
     "EBAY": {
       "dollars": 95.88425559185004,
       "anchor": 118.30500030517578,
       "entrySession": "2026-11-18",
-      "lastValue": 93.68379,
-      "lastPrice": 115.589996
+      "lastValue": 95.345283,
+      "lastPrice": 117.639999
     },
     "CRWD": {
       "dollars": 100.6844552367405,
       "anchor": 235.35499572753906,
       "entrySession": "2026-11-11",
-      "lastValue": 98.154031,
-      "lastPrice": 229.440002
+      "lastValue": 89.397001,
+      "lastPrice": 208.970001
     },
     "ROST": {
       "dollars": 95.88425559185004,
       "anchor": 226.6750030517578,
       "entrySession": "2026-11-18",
-      "lastValue": 90.29427,
-      "lastPrice": 213.460007
+      "lastValue": 91.808615,
+      "lastPrice": 217.039993
     },
     "WSM": {
       "dollars": 95.88425559185004,
       "anchor": 249.92999267578125,
       "entrySession": "2026-11-18",
-      "lastValue": 80.833885,
-      "lastPrice": 210.699997
+      "lastValue": 81.3825,
+      "lastPrice": 212.130005
     }
   },
   "pending": null,
-  "equity": 863.991783,
+  "equity": 919.412015,
   "benchmark": {
     "symbol": "SPY",
     "dollars": 1000.0,
     "anchor": 762.989990234375,
     "startSession": "2026-11-04",
-    "value": 904.087873
+    "value": 946.657213
   },
   "curve": [
     {
@@ -152,11 +152,16 @@
       "session": "2026-11-20",
       "equity": 863.991783,
       "spy": 904.087873
+    },
+    {
+      "session": "2026-11-23",
+      "equity": 919.412015,
+      "spy": 946.657213
     }
   ],
   "rebalances": 3,
   "lastRebalanceSession": "2026-11-18",
-  "sessionsSinceRebalance": 2,
-  "markedAt": "2026-11-20T19:19:05-05:00",
+  "sessionsSinceRebalance": 3,
+  "markedAt": "2026-11-23T17:53:35-05:00",
   "startSession": "2026-11-04"
 }
