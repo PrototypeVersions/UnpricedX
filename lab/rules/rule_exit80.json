@@ -1,0 +1,10 @@
+{
+  "name": "rule_exit80",
+  "kind": "rule",
+  "params": {
+    "exitRank": 80
+  },
+  "notes": "Keep a held name until it falls below rank 80 instead of 40 (wider no-trade band). Novy-Marx & Velikov (2016, RFS) buy/hold spread; DeMiguel, Martin-Utrera, Nogales & Uppal (2020, RFS).",
+  "proposedBy": "ai-trading-rules-2026-11-23",
+  "registeredAt": "2026-11-23"
+}

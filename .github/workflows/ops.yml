@@ -6,6 +6,7 @@ name: Ops request
 #   {"command": "sweep", "minutes": 60}
 #   {"command": "daily"}
 #   {"command": "site"}
+#   {"command": "rules"}                          pre-registered trading-rule trials (docs/DECISIONS.md 2026-11-23)
 #   {"command": "sec"}                            refresh SEC filings and fundamentals only
 #   {"command": "llm-check"}                      one test reading of a made-up release (writes no record)
 #   {"command": "sec-text-check"}                 re-fetch text of 'unclear' readings to check exhibits are found
@@ -73,6 +74,7 @@ jobs:
               sweep)     run="python -m unpriced.cli sweep --minutes $mins && python -m unpriced.cli site" ;;
               daily)     run="python -m unpriced.cli daily" ;;
               site)      run="python -m unpriced.cli site" ;;
+              rules)     run="python -m unpriced.cli rules" ;;
               sec)       run="python -m unpriced.cli sec && python -m unpriced.cli site" ;;
               llm-check) run="python -m unpriced.cli llm-check" ;;
               sec-text-check) run="python -m unpriced.cli sec-text-check" ;;

@@ -145,11 +145,16 @@ def _cost_lookup(day: pd.DataFrame, cost_bps) -> dict:
 
 
 def long_only(df: pd.DataFrame, pred: str, h: int, n: int | None = None, exit_rank: int | None = None,
-              max_per_sector: int | None | str = "config") -> pd.DataFrame:
+              max_per_sector: int | None | str = "config", trade_every: int = 1) -> pd.DataFrame:
     """The live paper portfolio's rules on history: top-n tradable names, equal weight, kept until
     they fall below `exit_rank`, at most `max_per_sector` from one statistical sector,
     rebalanced every h sessions; excess return over the benchmark. Selection is the live
-    portfolio's own function (`live.portfolio.select_holdings`)."""
+    portfolio's own function (`live.portfolio.select_holdings`).
+
+    `trade_every` > 1 (a pre-registered trading-rule trial, docs/DECISIONS.md 2026-11-23) chooses
+    new holdings only at every `trade_every`-th rebalance; in between the held names are kept
+    (a held name that left the tradable universe is sold, as at any rebalance). The default 1 is
+    the live rule and leaves results unchanged."""
     from ..config import section
     from ..live.portfolio import select_holdings
     pcfg = section("portfolio")
@@ -159,13 +164,18 @@ def long_only(df: pd.DataFrame, pred: str, h: int, n: int | None = None, exit_ra
     cols = ["date", "ticker", pred, f"fwd_{h}", f"bench_{h}", "liq_rank"] + (["sector"] if "sector" in df.columns else [])
     d = _exits_unknown_at_selection(df[df["tradable"].astype(bool)][cols].dropna(subset=[pred]), f"fwd_{h}")
     reb = _rebalance_dates(d["date"].to_numpy(), h)
-    rows, prev = [], {}
+    trade_every = max(1, int(trade_every))
+    rows, prev, step = [], {}, 0
     for date, day in d[d["date"].isin(reb)].groupby("date"):
         if len(day) < n * 3:
             continue
         ranked = day.sort_values(pred, ascending=False).reset_index(drop=True)
         sector = dict(zip(ranked["ticker"], ranked["sector"])) if "sector" in ranked.columns else {}
-        names = select_holdings(list(ranked["ticker"]), list(prev), n, exit_rank, sector, cap)
+        present = set(ranked["ticker"])
+        names = [t for t in prev if t in present] if step % trade_every != 0 else []
+        if not names:
+            names = select_holdings(list(ranked["ticker"]), list(prev), n, exit_rank, sector, cap)
+        step += 1
         top = ranked.set_index("ticker").loc[names].reset_index()
         w = dict.fromkeys(names, 1.0 / n)
         traded = sum(abs(w.get(t, 0) - prev.get(t, 0)) for t in set(w) | set(prev))

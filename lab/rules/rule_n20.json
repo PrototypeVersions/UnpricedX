@@ -1,0 +1,12 @@
+{
+  "name": "rule_n20",
+  "kind": "rule",
+  "params": {
+    "holdings": 20,
+    "exitRank": 80,
+    "maxPerSector": 6
+  },
+  "notes": "20 names, keep until rank 80, at most 6 per statistical sector: the current 10/40/3 scaled to 20 names. DeMiguel et al. (2020, RFS).",
+  "proposedBy": "ai-trading-rules-2026-11-23",
+  "registeredAt": "2026-11-23"
+}

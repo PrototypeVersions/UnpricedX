@@ -1,0 +1,10 @@
+{
+  "name": "rule_hold10",
+  "kind": "rule",
+  "params": {
+    "tradeEvery": 2
+  },
+  "notes": "Trade every 10 sessions instead of 5; holdings are left alone at the in-between rebalance. Novy-Marx & Velikov (2016, RFS); Garleanu & Pedersen (2013, JF).",
+  "proposedBy": "ai-trading-rules-2026-11-23",
+  "registeredAt": "2026-11-23"
+}
