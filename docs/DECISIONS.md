@@ -261,3 +261,23 @@ repository to fix.
 - **How it is run.** `python -m unpriced.cli rules` (ops request `{"command": "rules"}`) evaluates the rules in
   `lab/rules/*.json` once per data signature; it does not run the model sweep, refit live models, or touch any
   forecast. Its report is `lab/rules/last_run.json`. The Saturday sweep ignores these files.
+
+## 2026-11-23 (result): no trading rule passed; nothing live changes
+Run by ops request `rules` on the real store (`lab/rules/last_run.json`, four `rule-evaluated` ledger lines; development
+2006–2021, 705 five-session periods, champion `ens_all-c3743f03`). Annual figures; excess is after costs, over SPY.
+
+| Rule | Gross | Costs | Excess | Sharpe of excess | PSR | Turnover / rebalance | Dev gate |
+|---|---|---|---|---|---|---|---|
+| current rule (comparison, not a trial) | 18.6% | 3.3% | +3.2% | 0.18 | 0.76 | 50% | – |
+| `rule_exit80` | 17.3% | 2.5% | +2.8% | 0.17 | 0.74 | 37% | fail (PSR) |
+| `rule_n20` | 16.8% | 2.7% | +2.1% | 0.13 | 0.70 | 40% | fail (PSR) |
+| `rule_hold10` | 13.8% | 2.0% | −0.2% | −0.01 | 0.48 | 29% | fail |
+| `rule_hold10_exit80` | 13.1% | 1.5% | −0.4% | −0.03 | 0.46 | 22% | fail |
+
+- **Reading.** Every rule cut costs, as intended, but gave up more gross return than it saved: the champion's edge
+  decays within about a week (it is mostly short-term reversal), so holding names longer or keeping weaker names
+  costs more than the trading it avoids. None reaches PSR ≥ 0.95, so none was looked at on the holdout (no
+  holdout look used). The current rule itself (PSR 0.76) would not pass either.
+- **Consequences.** No second paper portfolio. The current paper portfolio, gates, eras and promotion are unchanged.
+  The development trial count rises by four (102 → 106), which slightly raises the IC bar for later models.
+  These rules are not re-tuned; a future rule idea needs its own pre-registered entry here.
