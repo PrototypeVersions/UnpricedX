@@ -343,3 +343,169 @@ def run_sweep(budget_minutes: float | None = None, ctx: Context | None = None, m
     report["champion"] = reg.get("champion")
     write_json(paths().lab / "last_sweep.json", report)
     return report
+
+
+# ---------------------------------------------------------------- trading-rule trials
+# Pre-registered on 2026-11-23 (docs/DECISIONS.md): rules for *trading* the champion's ranks, each a
+# trial gated on after-cost excess over SPY. They never change a forecast, a model or the live portfolio.
+
+def rule_specs() -> list[dict]:
+    from ..util import read_json
+    d = paths().lab / "rules"
+    out = []
+    for f in sorted(d.glob("*.json")) if d.exists() else []:
+        if f.name == "last_run.json":
+            continue
+        spec = read_json(f)
+        if isinstance(spec, dict) and spec.get("kind") == "rule":
+            out.append(spec)
+    return out
+
+
+RULE_PARAMS = {"holdings": "n", "exitRank": "exit_rank", "maxPerSector": "max_per_sector", "tradeEvery": "trade_every"}
+
+
+def rule_kwargs(rule: dict) -> dict:
+    p = rule.get("params", {})
+    unknown = set(p) - set(RULE_PARAMS)
+    if unknown:
+        raise ValueError(f"unknown rule parameters {sorted(unknown)}")
+    return {RULE_PARAMS[k]: v for k, v in p.items()}
+
+
+def rule_id(rule: dict, base_id: str) -> str:
+    import hashlib
+    import json
+    key = json.dumps({"params": rule.get("params", {}), "base": base_id}, sort_keys=True)
+    return f"{rule['name']}-{hashlib.sha256(key.encode()).hexdigest()[:8]}"
+
+
+def rule_metrics(lo: pd.DataFrame, h: int, n_trials: int, sr_var: float | None) -> dict:
+    from .metrics import METRICS_VERSION, deflated_sharpe, max_drawdown, sharpe
+    if lo.empty:
+        return {"metricsVersion": METRICS_VERSION, "longOnly": {}}
+    ppy = 252 / h
+    return {"metricsVersion": METRICS_VERSION, "longOnly": {
+        "periods": int(len(lo)), "grossAnnual": float(lo["gross"].mean() * ppy), "netAnnual": float(lo["net"].mean() * ppy),
+        "benchAnnual": float(lo["bench"].mean() * ppy), "excessAnnual": float(lo["excess"].mean() * ppy),
+        "sharpeExcess": sharpe(lo["excess"], ppy), "turnover": float(lo["turnover"].mean()),
+        "costAnnual": float((lo["gross"] - lo["net"]).mean() * ppy), "maxDrawdownExcess": max_drawdown(lo["excess"]),
+        "deflated": deflated_sharpe(lo["excess"], n_trials, sr_var)}}
+
+
+def rule_gates(m: dict, era: str) -> dict:
+    """The existing thresholds applied to the rule's after-cost excess over SPY (no new numbers)."""
+    g = section("lab")["gates"]
+    lo = m.get("longOnly", {})
+    if era == "dev":
+        checks = {"excessSharpeSignificant": bool((lo.get("deflated", {}).get("psr") or 0) >= g["devNetPsrMin"]),
+                  "positiveExcess": bool(lo.get("excessAnnual", -1) > 0)}
+    else:
+        checks = {"positiveExcess": bool(lo.get("excessAnnual", -1) > g["holdoutNetSpreadMin"])}
+    return {"checks": checks, "passed": all(checks.values())}
+
+
+def _rule_done(rid: str, era: str, data_sig: str) -> dict | None:
+    from .metrics import METRICS_VERSION
+    found = [e for e in ledger.entries() if e["id"] == rid and e["era"] == era and e.get("status") == ledger.RULE_STATUS
+             and e.get("dataSig") == data_sig and int(e["metrics"].get("metricsVersion", 1)) == METRICS_VERSION]
+    return found[-1] if found else None
+
+
+def run_rules(ctx: Context | None = None) -> dict:
+    """Evaluate the pre-registered trading rules on the champion's out-of-sample predictions.
+
+    Development first (each rule one logged trial), then the sealed holdout for development passers,
+    best development excess Sharpe first, within the weekly and yearly holdout caps. Each rule is
+    evaluated once per data signature. Writes lab/rules/last_run.json and returns the report."""
+    from .metrics import long_only
+    t0 = time.time()
+    rules = rule_specs()
+    reg = ledger.registry()
+    champ = reg.get("champion")
+    report = {"startedAt": iso(now_et()), "champion": champ, "rules": [r["name"] for r in rules], "dev": [], "holdout": [],
+              "baseline": {}, "selected": None, "decisionRule": "pass both gates; if several, highest development sharpeExcess"}
+    if not rules or not champ or champ not in reg["models"]:
+        report["note"] = "nothing to do (no rules or no champion)"
+        write_json(paths().lab / "rules" / "last_run.json", report)
+        return report
+    base = reg["models"][champ]["spec"]
+    h = int(base.get("horizon", 5))
+    ctx = ctx or load_context()
+    idx = PanelIndex(build_panel(ctx, list(REGISTRY)))
+    data_sig = ",".join(available_families(idx))
+    base_eff = effective_signature(base, data_sig)
+    report["dataSig"] = data_sig
+    oos_cache: dict[str, pd.DataFrame] = {}
+
+    def oos(era: str) -> pd.DataFrame:
+        if era not in oos_cache:
+            oos_cache[era], _, _ = walk_forward(idx, base, era)
+        return oos_cache[era]
+
+    def evaluate_rule(rule: dict, era: str) -> dict | None:
+        rid = rule_id(rule, champ)
+        prior = _rule_done(rid, era, data_sig)
+        if prior:
+            return prior
+        o = oos(era)
+        if o.empty:
+            return None
+        n_trials, sr_var = ledger.dev_trials()
+        lo = long_only(o, "pred", h, **rule_kwargs(rule))
+        m = rule_metrics(lo, h, n_trials + (1 if era == "dev" else 0), sr_var)
+        entry = ledger.record({
+            "id": rid, "name": rule["name"], "era": era, "status": ledger.RULE_STATUS,
+            "reason": "pre-registered trading rule (docs/DECISIONS.md 2026-11-23)" if era == "dev" else "holdout test",
+            "spec": {**rule, "base": champ, "baseSpec": base}, "dataSig": data_sig,
+            "effSig": f"rule|{base_eff}|{sorted(rule.get('params', {}).items())}", "metrics": m, "gates": rule_gates(m, era),
+            "code": code_version(), "oosStart": o["date"].min().date().isoformat(), "oosEnd": o["date"].max().date().isoformat(),
+            "seconds": round(time.time() - t0, 1)})
+        ledger.save_series(rid, era, {"longOnly": lo})
+        lom = m.get("longOnly", {})
+        L.info("rule %-22s %s excess=%+.4f sharpe=%+.3f psr=%.3f turnover=%.3f pass=%s", rule["name"], era,
+               lom.get("excessAnnual", np.nan), lom.get("sharpeExcess", np.nan),
+               lom.get("deflated", {}).get("psr", np.nan) or np.nan, lom.get("turnover", np.nan), entry["gates"]["passed"])
+        return entry
+
+    def row(e: dict) -> dict:
+        lo = e["metrics"].get("longOnly", {})
+        return {"id": e["id"], "name": e["name"], "excessAnnual": lo.get("excessAnnual"), "sharpeExcess": lo.get("sharpeExcess"),
+                "psr": lo.get("deflated", {}).get("psr"), "turnover": lo.get("turnover"), "costAnnual": lo.get("costAnnual"),
+                "gates": e["gates"]}
+
+    # the current live rule on the same predictions, for comparison only (not a trial, not logged)
+    for era in ("dev",):
+        o = oos(era)
+        if not o.empty:
+            report["baseline"][era] = rule_metrics(long_only(o, "pred", h), h, 1, None)["longOnly"]
+
+    dev = [e for e in (evaluate_rule(r, "dev") for r in rules) if e]
+    report["dev"] = [row(e) for e in dev]
+    passers = sorted([e for e in dev if e["gates"]["passed"]],
+                     key=lambda e: e["metrics"]["longOnly"].get("sharpeExcess") or -np.inf, reverse=True)
+    lab = section("lab")
+    cap = min(int(lab["maxHoldoutTestsPerWeek"]) - ledger.holdout_tests_this_week(),
+              int(lab["maxHoldoutTestsPerYear"]) - ledger.holdout_tests_this_week(days=365))
+    by_name = {r["name"]: r for r in rules}
+    held = []
+    for e in passers:
+        rid = e["id"]
+        prior = _rule_done(rid, "holdout", data_sig)
+        if prior is None:
+            if cap <= 0:
+                report.setdefault("waitingForHoldout", []).append(e["name"])
+                continue
+            cap -= 1
+        hh = evaluate_rule(by_name[e["name"]], "holdout")
+        if hh:
+            held.append(hh)
+    report["holdout"] = [row(e) for e in held]
+    winners = [d for d in passers if any(x["id"] == d["id"] and x["gates"]["passed"] for x in held)]
+    if winners:
+        w = winners[0]
+        report["selected"] = {"id": w["id"], "name": w["name"], "params": w["spec"].get("params", {})}
+    report["finishedAt"] = iso(now_et())
+    report["minutes"] = round((time.time() - t0) / 60, 1)
+    write_json(paths().lab / "rules" / "last_run.json", report)
+    return report

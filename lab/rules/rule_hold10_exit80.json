@@ -1,0 +1,11 @@
+{
+  "name": "rule_hold10_exit80",
+  "kind": "rule",
+  "params": {
+    "tradeEvery": 2,
+    "exitRank": 80
+  },
+  "notes": "Rules hold10 and exit80 together: trade less often and less per trade. Garleanu & Pedersen (2013, JF).",
+  "proposedBy": "ai-trading-rules-2026-11-23",
+  "registeredAt": "2026-11-23"
+}

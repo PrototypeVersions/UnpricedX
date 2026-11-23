@@ -114,6 +114,7 @@ def lab_json() -> dict:
         "updatedAt": iso(now_et()), "trials": n_trials, "icBarNow": round(ic_threshold(n_trials + 1), 2), "experiments": rows, "charts": charts,
         "eras": {"devEnd": section("lab")["devEnd"], "holdoutStart": section("lab")["holdoutStart"], "trainStart": section("lab")["trainStart"]},
         "gates": section("lab")["gates"], "lastSweep": read_json(paths().lab / "last_sweep.json", {}),
+        "tradingRules": read_json(paths().lab / "rules" / "last_run.json", {}),
         "features": [{"name": f.name, "family": f.family, "doc": f.doc, "ref": f.ref, "sign": f.sign} for f in REGISTRY.values()],
         "families": fam,
     }

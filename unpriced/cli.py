@@ -98,6 +98,14 @@ def cmd_sweep(args) -> None:
     print(dumps(run_sweep(budget_minutes=args.minutes, max_new=args.max_new)))
 
 
+def cmd_rules(args) -> None:
+    """Pre-registered trading-rule trials on the champion's predictions (docs/DECISIONS.md 2026-11-23)."""
+    from .lab.runner import run_rules
+    from . import site_build
+    print(dumps(run_rules()))
+    site_build.build()
+
+
 def cmd_site(args) -> None:
     from . import site_build
     site_build.build()
@@ -238,6 +246,7 @@ def main(argv=None) -> None:
     s.add_argument("--max-new", type=int, default=None)
     s.set_defaults(fn=cmd_sweep)
     sub.add_parser("site").set_defaults(fn=cmd_site)
+    sub.add_parser("rules").set_defaults(fn=cmd_rules)
     sub.add_parser("sec").set_defaults(fn=cmd_sec)
     sub.add_parser("llm-check").set_defaults(fn=cmd_llm_check)
     stc = sub.add_parser("sec-text-check")

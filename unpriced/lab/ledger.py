@@ -20,8 +20,16 @@ def ledger_path():
     return paths().lab / "ledger.jsonl"
 
 
+RULE_STATUS = "rule-evaluated"   # trading-rule trials (docs/DECISIONS.md 2026-11-23): trials, but not models
+
+
 def entries() -> list[dict]:
     return read_jsonl(ledger_path())
+
+
+def is_trial(e: dict) -> bool:
+    """Model evaluations and trading-rule evaluations both count as trials and holdout looks."""
+    return e.get("status") in ("evaluated", RULE_STATUS)
 
 
 def _version(e: dict) -> int:
@@ -78,7 +86,7 @@ def dev_trials() -> tuple[int, float | None]:
     """
     latest: dict[str, dict] = {}
     for e in entries():
-        if e["era"] == "dev" and e.get("status") == "evaluated":
+        if e["era"] == "dev" and is_trial(e):
             latest[identity(e)] = e
     srs = [e["metrics"].get("longShort", {}).get("deflated", {}).get("srPerPeriod") for e in latest.values()]
     srs = [s for s in srs if s is not None and np.isfinite(s)]
@@ -94,7 +102,7 @@ def holdout_tests_this_week(days: int = 7) -> int:
 def holdout_looks() -> int:
     """Distinct models ever scored on the sealed holdout. Each look leaks a little information,
     so the holdout gate's bar rises with this count (Bonferroni), like the development gate's."""
-    return len({identity(e) for e in entries() if e["era"] == "holdout" and e.get("status") == "evaluated"})
+    return len({identity(e) for e in entries() if e["era"] == "holdout" and is_trial(e)})
 
 
 def record(entry: dict) -> dict:
