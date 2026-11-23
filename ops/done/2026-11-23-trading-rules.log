@@ -1,0 +1,111 @@
+2026-11-23 16:19:54,810 INFO unpriced.context: context: 5761 sessions x 2314 tickers, 142877 earnings events, 104174 fundamental rows
+/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/pandas/core/internals/blocks.py:354: RuntimeWarning: divide by zero encountered in log
+  result = func(self.values, **kwargs)
+2026-11-23 16:22:07,496 INFO unpriced.lab: rule rule_exit80            dev excess=+0.0284 sharpe=+0.166 psr=0.738 turnover=0.371 pass=False
+2026-11-23 16:22:09,422 INFO unpriced.lab: rule rule_hold10            dev excess=-0.0020 sharpe=-0.012 psr=0.483 turnover=0.293 pass=False
+2026-11-23 16:22:11,434 INFO unpriced.lab: rule rule_hold10_exit80     dev excess=-0.0042 sharpe=-0.027 psr=0.460 turnover=0.223 pass=False
+2026-11-23 16:22:13,500 INFO unpriced.lab: rule rule_n20               dev excess=+0.0207 sharpe=+0.133 psr=0.699 turnover=0.402 pass=False
+{
+  "startedAt": "2026-11-23T11:19:11-05:00",
+  "champion": "ens_all-c3743f03",
+  "rules": [
+    "rule_exit80",
+    "rule_hold10",
+    "rule_hold10_exit80",
+    "rule_n20"
+  ],
+  "dev": [
+    {
+      "id": "rule_exit80-2d53d450",
+      "name": "rule_exit80",
+      "excessAnnual": 0.028427932411432266,
+      "sharpeExcess": 0.16566148400306702,
+      "psr": 0.7381158382318255,
+      "turnover": 0.37092198581560293,
+      "costAnnual": 0.024702434809692315,
+      "gates": {
+        "checks": {
+          "excessSharpeSignificant": false,
+          "positiveExcess": true
+        },
+        "passed": false
+      }
+    },
+    {
+      "id": "rule_hold10-8d7ca962",
+      "name": "rule_hold10",
+      "excessAnnual": -0.0019781680312007666,
+      "sharpeExcess": -0.011665714904665947,
+      "psr": 0.4826280026342333,
+      "turnover": 0.29333333333333333,
+      "costAnnual": 0.01962669103242738,
+      "gates": {
+        "checks": {
+          "excessSharpeSignificant": false,
+          "positiveExcess": false
+        },
+        "passed": false
+      }
+    },
+    {
+      "id": "rule_hold10_exit80-d7f52679",
+      "name": "rule_hold10_exit80",
+      "excessAnnual": -0.004237088840454817,
+      "sharpeExcess": -0.026868460699915886,
+      "psr": 0.46001806022749125,
+      "turnover": 0.22340425531914893,
+      "costAnnual": 0.01518862998142759,
+      "gates": {
+        "checks": {
+          "excessSharpeSignificant": false,
+          "positiveExcess": false
+        },
+        "passed": false
+      }
+    },
+    {
+      "id": "rule_n20-efdcd4bb",
+      "name": "rule_n20",
+      "excessAnnual": 0.020729374140501022,
+      "sharpeExcess": 0.13334186375141144,
+      "psr": 0.6989890215091723,
+      "turnover": 0.40184397163120567,
+      "costAnnual": 0.026973653721413825,
+      "gates": {
+        "checks": {
+          "excessSharpeSignificant": false,
+          "positiveExcess": true
+        },
+        "passed": false
+      }
+    }
+  ],
+  "holdout": [],
+  "baseline": {
+    "dev": {
+      "periods": 705,
+      "grossAnnual": 0.1855025584379736,
+      "netAnnual": 0.15269751846790314,
+      "benchAnnual": 0.12020347324047909,
+      "excessAnnual": 0.03249404579401016,
+      "sharpeExcess": 0.18265198171138763,
+      "turnover": 0.49631205673758877,
+      "costAnnual": 0.032805040975502554,
+      "maxDrawdownExcess": -0.37316250801086426,
+      "deflated": {
+        "dsr": 0.7605868878946144,
+        "psr": 0.7605868878946144,
+        "sr0": 0.0,
+        "srPerPeriod": 0.02572818286716938,
+        "periods": 705,
+        "nTrials": 1
+      }
+    }
+  },
+  "selected": null,
+  "decisionRule": "pass both gates; if several, highest development sharpeExcess",
+  "dataSig": "events,fundamentals,leadlag,liquidity,momentum,news,residual,reversal,risk,seasonal,tugofwar,turnover,valuation",
+  "finishedAt": "2026-11-23T11:22:13-05:00",
+  "minutes": 3.0
+}
+exit: 0
