@@ -1,40 +1,40 @@
 {
-  "session": "2026-11-23",
-  "startedAt": "2026-11-23T17:44:51-05:00",
+  "session": "2026-11-24",
+  "startedAt": "2026-11-24T17:48:20-05:00",
   "prices": {
-    "requested": 1064,
+    "requested": 1063,
     "new": 0,
-    "refetched": 0,
-    "appended": 1062,
+    "refetched": 7,
+    "appended": 1054,
     "failed": [],
-    "rows": 16795706,
-    "lastDate": "2026-11-23"
+    "rows": 16796767,
+    "lastDate": "2026-11-24"
   },
   "sec": {
     "enabled": true,
     "mode": "daily",
     "indexDays": {
       "read": [
-        "2026-11-20"
+        "2026-11-23"
       ],
       "absent": [],
       "pending": [
-        "2026-11-23"
+        "2026-11-24"
       ]
     },
-    "submissions": 41,
-    "facts": 5,
-    "fundamentalRows": 104174,
-    "at": "2026-11-23T17:52:53-05:00"
+    "submissions": 43,
+    "facts": 4,
+    "fundamentalRows": 104178,
+    "at": "2026-11-24T17:54:58-05:00"
   },
   "coverage": 1.0,
   "llm": {
     "enabled": true,
-    "eligible": 11,
-    "read": 11,
+    "eligible": 8,
+    "read": 8,
     "deferredForTime": 0,
-    "inputTokens": 177441,
-    "outputTokens": 3897,
+    "inputTokens": 129391,
+    "outputTokens": 2835,
     "model": "claude-haiku-5-5",
     "promptVersion": "guidance-1"
   },
@@ -43,12 +43,12 @@
     "events": []
   },
   "snapshot": {
-    "session": "2026-11-23",
-    "file": "live/snapshots/2026/2026-11-23.json.gz",
-    "sha256": "e611663b4e6386f081885a8f3dc3800a434b1688a2b0ef53208f51d7a8e6943f",
-    "prevHash": "68ad4dcefc7cd0f65c95a1c5ae1d134611c2223f3e51e544e5a31279b0c4a48f",
-    "decidedAt": "2026-11-23T17:53:35-05:00",
-    "entrySession": "2026-11-24"
+    "session": "2026-11-24",
+    "file": "live/snapshots/2026/2026-11-24.json.gz",
+    "sha256": "c981ceaaa48d1ec105621c83aa0f29b492fb14dd7cbeaf90b6e2a3a9989ceeba",
+    "prevHash": "e611663b4e6386f081885a8f3dc3800a434b1688a2b0ef53208f51d7a8e6943f",
+    "decidedAt": "2026-11-24T17:55:28-05:00",
+    "entrySession": "2026-11-25"
   },
   "trades": 0,
   "status": "published"
