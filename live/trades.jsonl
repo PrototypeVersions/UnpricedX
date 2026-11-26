@@ -32,3 +32,15 @@
 {"session": "2026-11-18", "ticker": "ROST", "side": "BUY", "dollars": 95.8843, "price": 226.675003, "costDollars": 0.0959, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
 {"session": "2026-11-18", "ticker": "WSM", "side": "BUY", "dollars": 95.8843, "price": 249.929993, "costDollars": 0.0959, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
 {"session": "2026-11-18", "ticker": "MPC", "side": "SELL", "dollars": 99.4359, "price": 391.040009, "costDollars": 0.169, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-17"}
+{"session": "2026-11-25", "ticker": "NVDA", "side": "SELL", "dollars": 83.9542, "price": 144.020004, "costDollars": 0.1427, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "FIVE", "side": "SELL", "dollars": 92.8168, "price": 222.399994, "costDollars": 0.1578, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "VLO", "side": "BUY", "dollars": 85.5338, "price": 317.76001, "costDollars": 0.0513, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "STX", "side": "BUY", "dollars": 85.5338, "price": 454.299988, "costDollars": 0.0513, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "ROST", "side": "SELL", "dollars": 95.6548, "price": 226.132507, "costDollars": 0.1626, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "CASY", "side": "BUY", "dollars": 85.5338, "price": 691.75, "costDollars": 0.0855, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "CAT", "side": "SELL", "dollars": 86.9885, "price": 518.987488, "costDollars": 0.1479, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "MPC", "side": "BUY", "dollars": 85.5338, "price": 345.01001, "costDollars": 0.0513, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "HPQ", "side": "BUY", "dollars": 85.5338, "price": 29.950001, "costDollars": 0.0855, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "CRWD", "side": "SELL", "dollars": 86.2065, "price": 201.511993, "costDollars": 0.1466, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "ADI", "side": "SELL", "dollars": 74.647, "price": 302.440002, "costDollars": 0.1269, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
+{"session": "2026-11-25", "ticker": "NTAP", "side": "BUY", "dollars": 85.5338, "price": 155.259995, "costDollars": 0.0855, "model": "ens_all-c3743f03", "decidedFrom": "2026-11-24"}
